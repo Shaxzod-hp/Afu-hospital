@@ -1,0 +1,537 @@
+/* ═══════════════════════════════════════════════════════════
+   CLINIKA — Global Design System (Dark Mode Fixed)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. GOOGLE FONTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800;900&display=swap');
+
+/* ── 2. CSS TOKENS (Light Theme) ── */
+:root {
+  /* Brand Colors */
+  --clr-primary:      #002b87;
+  --clr-primary-mid:  #1a44b0;
+  --clr-secondary:    #d32f2f;
+  --clr-accent:       #4088c4;
+  --clr-footer:       #2d2e7b;
+
+  /* Grays */
+  --clr-bg:       #f8fafc;
+  --clr-surface:  #ffffff;
+  --clr-border:   #e2e8f0;
+  --clr-text:     #0f172a;
+  --clr-muted:    #64748b;
+  --clr-faint:    #f1f5f9;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 6px rgba(0,0,0,.06);
+  --shadow-md:  0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg:  0 10px 40px rgba(0,0,0,.10);
+  --shadow-xl:  0 20px 60px rgba(0,0,0,.14);
+
+  /* Motion */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: all 0.3s var(--ease-out);
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Fonts */
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', 'Inter', sans-serif;
+}
+
+/* ── 3. DARK THEME TOKENS (Tuzatilgan va Boyitilgan) ── */
+[data-theme="dark"] {
+  /* Brand Colors adjustment for dark mode readability */
+  --clr-primary:        #3b82f6;
+  --clr-primary-mid:    #60a5fa;
+  --clr-secondary:      #ef4444;
+  --clr-accent:         #38bdf8;
+  --clr-footer:         #0f172a;
+
+  /* Grays — chuqur va yumshoqroq qora tuslar */
+  --clr-bg:             #0b0f19;
+  --clr-surface:        #131b2e;
+  --clr-border:         #1e293b;
+  --clr-text:           #e2e8f0;
+  --clr-muted:          #94a3b8;
+  --clr-faint:          #1a2234;
+
+  /* Shadows for dark mode (yumshoqroq va yorqinroq qirrali) */
+  --shadow-sm:  0 1px 6px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 20px rgba(0,0,0,.4);
+  --shadow-lg:  0 10px 40px rgba(0,0,0,.5);
+  --shadow-xl:  0 20px 60px rgba(0,0,0,.6);
+}
+
+/* ── 4. BASE RESETS ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--clr-text);
+  background: var(--clr-bg);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ── 5. TYPOGRAPHY UTILITIES ── */
+.font-display { font-family: var(--font-display) !important; }
+
+h1, h2, h3, .heading { font-family: var(--font-display); }
+
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] .heading, 
+[data-theme="dark"] .text-dark { 
+  color: #f8fafc !important; 
+}
+
+.text-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.text-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.text-clamp-4 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+.fw-800 { font-weight: 800 !important; }
+.fw-900 { font-weight: 900 !important; }
+.ls-wide { letter-spacing: 2px !important; }
+
+/* ── 6. SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--clr-faint); }
+::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--clr-muted); }
+
+/* ── 7. SHARED CARD COMPONENTS ── */
+
+/* Glass Card */
+.glass-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+[data-theme="dark"] .glass-card {
+  background: var(--clr-surface);
+  border-color: var(--clr-border);
+}
+
+/* Hoverable Card */
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl) !important;
+  border-color: var(--clr-primary) !important;
+}
+
+/* ── 8. PAGE HERO (shared across all inner pages) ── */
+.page-hero {
+  background: linear-gradient(135deg, var(--clr-primary) 0%, #00144a 100%);
+  color: #fff;
+  padding: 116px 0 110px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .page-hero {
+    padding: 96px 0 90px;
+  }
+}
+
+[data-theme="dark"] .page-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* subtle dot grid overlay */
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.page-hero .hero-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.65);
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.page-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.page-hero p.lead {
+  color: rgba(255,255,255,.8);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.hero-card-pull {
+  margin-top: -70px;
+  position: relative;
+  z-index: 3;
+}
+
+/* ── 9. SECTION UTILITIES ── */
+.section-pad { padding: 80px 0; }
+.section-pad-sm { padding: 56px 0; }
+
+.section-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--clr-primary);
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+/* ── 10. FORM CONTROLS ── */
+.form-control,
+.form-select {
+  border-color: var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(0,43,135,.12);
+  outline: none;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--clr-surface);
+  border-color: var(--clr-border);
+  color: var(--clr-text);
+}
+
+[data-theme="dark"] .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+  border-color: var(--clr-primary);
+}
+
+[data-theme="dark"] .form-control::placeholder { color: var(--clr-muted); }
+[data-theme="dark"] label { color: var(--clr-text); }
+
+/* ── 11. BUTTONS ── */
+.btn-clinic-primary {
+  background: linear-gradient(135deg, var(--clr-primary) 0%, var(--clr-primary-mid) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  padding: 0.7rem 1.8rem;
+  transition: var(--transition);
+  box-shadow: 0 4px 14px rgba(0,43,135,.25);
+}
+
+.btn-clinic-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,43,135,.35);
+  color: #fff;
+}
+
+.btn-clinic-danger {
+  background: var(--clr-secondary);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  padding: 0.7rem 1.8rem;
+  transition: var(--transition);
+}
+
+.btn-clinic-danger:hover {
+  background: #b71c1c;
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* ── 12. BADGE STYLES ── */
+.badge-eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(0,43,135,.1);
+  color: var(--clr-primary);
+}
+
+[data-theme="dark"] .badge-eyebrow {
+  background: rgba(59,130,246,.15);
+  color: #60a5fa;
+}
+
+/* ── 13. ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fadeUp { animation: fadeUp 0.6s var(--ease-out) both; }
+.animate-fadeIn { animation: fadeIn 0.4s ease both; }
+
+/* ── 14. IMAGE UTILITIES ── */
+.img-cover { width: 100%; height: 100%; object-fit: cover; }
+.img-cover-card { object-fit: cover; width: 100%; }
+
+/* ── 15. DARK MODE — BOOTSTRAP COMPONENT OVERRIDES (To'liq to'g'rilandi) ── */
+[data-theme="dark"] .bg-white    { background: var(--clr-surface) !important; }
+[data-theme="dark"] .bg-light    { background: var(--clr-bg) !important; }
+[data-theme="dark"] .text-dark   { color: var(--clr-text)  !important; }
+[data-theme="dark"] .text-secondary { color: var(--clr-muted) !important; }
+[data-theme="dark"] .text-muted { color: var(--clr-muted) !important; }
+
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end { 
+  border-color: var(--clr-border) !important; 
+}
+
+[data-theme="dark"] .card { 
+  background: var(--clr-surface); 
+  border-color: var(--clr-border); 
+  color: var(--clr-text); 
+}
+
+[data-theme="dark"] .table { 
+  color: var(--clr-text); 
+  border-color: var(--clr-border);
+}
+
+[data-theme="dark"] .table thead th { 
+  background: var(--clr-faint); 
+  color: var(--clr-text); 
+  border-color: var(--clr-border); 
+}
+
+[data-theme="dark"] .table tbody td { 
+  border-color: var(--clr-border); 
+}
+
+[data-theme="dark"] .dropdown-menu { 
+  background: var(--clr-surface); 
+  border-color: var(--clr-border); 
+}
+
+[data-theme="dark"] .dropdown-item { 
+  color: var(--clr-text); 
+}
+
+[data-theme="dark"] .dropdown-item:hover { 
+  background: var(--clr-faint); 
+  color: var(--clr-primary-mid); 
+}
+
+[data-theme="dark"] .modal-content { 
+  background: var(--clr-surface); 
+  color: var(--clr-text); 
+  border-color: var(--clr-border);
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer { 
+  border-color: var(--clr-border); 
+}
+
+[data-theme="dark"] .breadcrumb  { 
+  background: var(--clr-surface) !important; 
+}
+
+[data-theme="dark"] .list-group-item {
+  background-color: var(--clr-surface);
+  color: var(--clr-text);
+  border-color: var(--clr-border);
+}
+
+/* ── 16. APP LAYOUT ── */
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--clr-bg);
+  overflow-x: clip;
+  width: 100%;
+}
+
+main { flex: 1; }
+
+/* ── 17. TRANSITION — PAGE (vue router) ── */
+.page-enter-active,
+.page-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
+.page-enter-from   { opacity: 0; transform: translateY(8px); }
+.page-leave-to     { opacity: 0; transform: translateY(-8px); }
+
+/* ── 18. HOVER UTILITY ── */
+.hover-lift { transition: var(--transition); }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg) !important; }
+
+/* ── 19. CONTACT SECTION SHARED ── */
+.contact-info-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.contact-icon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  background: rgba(0,43,135,.08);
+  color: var(--clr-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+[data-theme="dark"] .contact-icon {
+  background: rgba(59,130,246,.15);
+  color: var(--clr-primary);
+}
+
+/* ── 20. STATS ROW ── */
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--clr-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--clr-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── 21. CUSTOM MT-N5 (hero card pull) ── */
+.mt-n5 { margin-top: -70px; }
+.mt-n4 { margin-top: -50px; }
+
+@media (max-width: 768px) {
+  .mt-n5 { margin-top: -40px; }
+  .mt-n4 { margin-top: -30px; }
+  .section-pad { padding: 56px 0; }
+  .section-pad-sm { padding: 40px 0; }
+}
+
+/* ── 22. DOCTOR / SERVICE CARD SHARED ── */
+.premium-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl) !important;
+  border-color: var(--clr-primary) !important;
+}
+
+.premium-card .card-img-zoom {
+  transition: transform 0.7s var(--ease-out);
+}
+
+.premium-card:hover .card-img-zoom {
+  transform: scale(1.06);
+}
+
+/* ── 23. SPINNER ── */
+.loading-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+/* ── 24. WORKING HOURS TABLE ── */
+.hours-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--clr-border);
+  font-size: 0.9rem;
+}
+
+.hours-row:last-child { border-bottom: none; }
+
+/* ── 25. SWIPER OVERRIDES (global) ── */
+.swiper-pagination-bullet {
+  background: var(--clr-border) !important;
+  opacity: 1 !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--clr-secondary) !important;
+}
+
+/* ── 26. MEDICAL BACKGROUND GRADIENTS & SECTIONS ── */
+.bg-medical-light {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+[data-theme="dark"] .bg-medical-light {
+  background: linear-gradient(180deg, var(--clr-bg) 0%, var(--clr-surface) 100%) !important;
+}
+
+.bg-medical-subtle {
+  background-color: #f8fafc !important;
+  background-image: radial-gradient(circle at 10% 20%, rgba(0, 43, 135, 0.02) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(64, 136, 196, 0.03) 0%, transparent 40%);
+}
+
+[data-theme="dark"] .bg-medical-subtle {
+  background-color: var(--clr-bg) !important;
+  background-image: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.03) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.5) 0%, transparent 40%);
+}
