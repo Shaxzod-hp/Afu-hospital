@@ -57,7 +57,7 @@
             {{ news.summary }}
           </p>
 
-          <div class="news-content" v-html="news.content"></div>
+          <div class="news-content" v-html="safeContent"></div>
         </div>
       </div>
     </template>
@@ -65,14 +65,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
+import DOMPurify from "dompurify";
 import newsService from "../../../services/newsService";
 
 const route = useRoute();
 const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const news = ref(null);
+
+// Yangilik matnidagi <script>, onerror= va h.k. zararli kodni olib tashlaymiz
+const safeContent = computed(() =>
+  DOMPurify.sanitize(news.value?.content || "")
+);
 const loading = ref(true);
 const error = ref(null);
 

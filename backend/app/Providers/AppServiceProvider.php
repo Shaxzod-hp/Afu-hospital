@@ -26,6 +26,15 @@ class AppServiceProvider extends ServiceProvider
         // the route. This key locks out a specific credential across all IPs
         // (brute-forcing the same account from rotating IPs) and is independent
         // of the IP-keyed limiter, so both must pass.
+        // Aloqa formasi: har bir murojaat Telegram guruhga ham ketadi, spamdan himoya
+        RateLimiter::for('contact', function (Request $request) {
+            return [
+                // Kalitlar har xil bo'lishi shart — aks holda ikkala limit bitta hisoblagichni oshiradi
+                Limit::perMinute(3)->by('contact-min|' . $request->ip()),
+                Limit::perDay(20)->by('contact-day|' . $request->ip()),
+            ];
+        });
+
         RateLimiter::for('login', function (Request $request) {
             return [
                 // 5 attempts per minute keyed on the submitted login identifier + IP.

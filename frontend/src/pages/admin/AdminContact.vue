@@ -129,6 +129,21 @@
           </tbody>
         </table>
       </div>
+      <div
+        v-if="!loading && !error && contacts.length"
+        class="d-flex justify-content-between align-items-center px-4 py-3 small text-muted-glass"
+      >
+        <span>Ko'rsatilmoqda: {{ contacts.length }} / {{ total }}</span>
+        <button
+          v-if="currentPage < lastPage"
+          class="btn btn-sm btn-outline-primary rounded-pill px-3"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          <span v-if="loadingMore" class="spinner-border spinner-border-sm me-1"></span>
+          Ko'proq yuklash
+        </button>
+      </div>
     </div>
 
     <!-- Modal -->
@@ -212,24 +227,43 @@ const filteredContacts = computed(() => {
   );
 });
 
+const currentPage = ref(1);
+const lastPage = ref(1);
+const total = ref(0);
+const loadingMore = ref(false);
+
+const fetchPage = async (page) => {
+  const res = await api.get("/admin/contacts", { params: { page, per_page: 50 } });
+  const payload = res.data?.data || {};
+  currentPage.value = payload.current_page || 1;
+  lastPage.value = payload.last_page || 1;
+  total.value = payload.total ?? 0;
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
 const fetchContacts = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const res = await api.get("/admin/contacts");
-    const payload = res.data?.data;
-    if (payload && Array.isArray(payload.data)) {
-        contacts.value = payload.data;
-    } else if (Array.isArray(payload)) {
-        contacts.value = payload;
-    } else {
-        contacts.value = [];
-    }
+    contacts.value = await fetchPage(1);
   } catch (err) {
     contacts.value = [];
     error.value = "Murojaatlarni yuklashda xatolik yuz berdi.";
   } finally {
     loading.value = false;
+  }
+};
+
+const loadMore = async () => {
+  loadingMore.value = true;
+  try {
+    const more = await fetchPage(currentPage.value + 1);
+    const ids = new Set(contacts.value.map((c) => c.id));
+    contacts.value.push(...more.filter((c) => !ids.has(c.id)));
+  } catch (err) {
+    alert("Keyingi murojaatlarni yuklashda xatolik yuz berdi.");
+  } finally {
+    loadingMore.value = false;
   }
 };
 
@@ -253,9 +287,10 @@ const viewContact = async (c) => {
   if (!c.read) {
     c.read = true;
     try {
-      // TODO: connect to /api/admin/contacts once backend is ready
       await api.put(`/admin/contacts/${c.id}`, { read: true });
-    } catch {}
+    } catch {
+      c.read = false;
+    }
   }
 };
 
@@ -267,7 +302,6 @@ const closeModal = () => {
 const handleDelete = async (id) => {
   if (!confirm("Ushbu murojaatni o'chirmoqchimisiz?")) return;
   try {
-    // TODO: connect to /api/admin/contacts once backend is ready
     await api.delete(`/admin/contacts/${id}`);
     showModal.value = false;
     fetchContacts();

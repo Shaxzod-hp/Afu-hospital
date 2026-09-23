@@ -460,23 +460,26 @@ const saveDoctor = async () => {
     const formData = new FormData();
     formData.append("full_name", form.value.full_name);
     formData.append("specialization_id", form.value.specialization_id);
-    if (form.value.position) formData.append("position", form.value.position);
-    if (form.value.experience_years !== null)
-      formData.append("experience_years", form.value.experience_years);
-    if (form.value.bio) formData.append("bio", form.value.bio);
-    if (form.value.education)
-      formData.append("education", form.value.education);
-    if (form.value.previous_workplace)
-      formData.append("previous_workplace", form.value.previous_workplace);
-    if (form.value.phone) formData.append("phone", form.value.phone);
+    // Bo'sh maydonlar ham yuboriladi: backend ularni null qiladi va
+    // admin eski qiymatni o'chira oladi
+    const optional = [
+      "position",
+      "experience_years",
+      "bio",
+      "education",
+      "previous_workplace",
+      "phone",
+      "instagram",
+      "telegram",
+      "whatsapp",
+    ];
+    for (const key of optional) {
+      formData.append(key, form.value[key] ?? "");
+    }
 
     // Ish vaqtini JSON formatida jo'natamiz
     formData.append("schedule", JSON.stringify(form.value.schedule));
 
-    if (form.value.instagram)
-      formData.append("instagram", form.value.instagram);
-    if (form.value.telegram) formData.append("telegram", form.value.telegram);
-    if (form.value.whatsapp) formData.append("whatsapp", form.value.whatsapp);
     if (form.value.photoFile) formData.append("photo", form.value.photoFile);
 
     await doctorsService.update(route.params.id, formData);

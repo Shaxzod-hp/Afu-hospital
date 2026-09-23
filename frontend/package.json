@@ -13,6 +13,7 @@
         "axios": "^1.6.2",
         "bootstrap": "^5.3.8",
         "bootstrap-icons": "^1.13.1",
+        "dompurify": "^3.4.16",
         "pinia": "^2.1.7",
         "swiper": "^12.1.4",
         "vue": "^3.3.8",

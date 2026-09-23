@@ -176,13 +176,20 @@ const removeItem = (idx) => {
 const buildFormData = () => {
   const fd = new FormData();
   fd.append("name", form.name);
-  if (form.short_description)
-    fd.append("short_description", form.short_description);
+  fd.append("short_description", form.short_description || "");
   if (photoFile.value) fd.append("photo", photoFile.value);
-  form.included_items.forEach((item, idx) => {
-    fd.append(`included_items[${idx}][name]`, item.name);
-    fd.append(`included_items[${idx}][price]`, item.price);
-  });
+  const items = form.included_items.filter(
+    (item) => item.name && String(item.name).trim() !== ""
+  );
+  if (items.length) {
+    items.forEach((item, idx) => {
+      fd.append(`included_items[${idx}][name]`, item.name);
+      fd.append(`included_items[${idx}][price]`, item.price);
+    });
+  } else {
+    // Ro'yxat bo'sh bo'lsa ham yuboramiz — backend uni tozalaydi
+    fd.append("included_items", "");
+  }
   return fd;
 };
 

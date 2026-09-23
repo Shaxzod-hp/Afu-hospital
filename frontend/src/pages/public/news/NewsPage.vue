@@ -135,7 +135,7 @@ const truncate = (html) => {
 const fetchNews = async () => {
   loading.value = true;
   try {
-    const data = await newsService.fetchAll();
+    const data = await newsService.fetchAll({ per_page: 100 });
     const list =
       data?.data?.data || data?.data || (Array.isArray(data) ? data : []);
     news.value = list.filter((n) => n && (n.slug || n.id));

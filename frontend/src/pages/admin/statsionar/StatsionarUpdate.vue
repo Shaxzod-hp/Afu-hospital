@@ -328,15 +328,18 @@ const savePackage = async () => {
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
-    if (form.value.note) formData.append("note", form.value.note);
-    if (form.value.price !== null && form.value.price !== "") {
-      formData.append("price", form.value.price);
-    }
+    formData.append("note", form.value.note || "");
+    formData.append("price", form.value.price ?? "");
 
     const validItems = form.value.items.filter((i) => i && i.trim() !== "");
-    validItems.forEach((item, index) => {
-      formData.append(`included_items[${index}]`, item);
-    });
+    if (validItems.length) {
+      validItems.forEach((item, index) => {
+        formData.append(`included_items[${index}]`, item);
+      });
+    } else {
+      // Ro'yxat bo'sh bo'lsa ham yuboramiz — backend uni tozalaydi
+      formData.append("included_items", "");
+    }
 
     if (replacingPhotos.value) {
       photoFiles.value.forEach((file) => {

@@ -225,14 +225,12 @@ const fetchDashboardData = async () => {
 
   // 2. Fetch Contacts API
   try {
-    const resContacts = await api.get("/admin/contacts");
-    const cList = Array.isArray(resContacts.data?.data)
-      ? resContacts.data.data
-      : Array.isArray(resContacts.data)
-      ? resContacts.data
-      : [];
+    const resContacts = await api.get("/admin/contacts", { params: { per_page: 5 } });
+    const page = resContacts.data?.data || {};
+    const cList = Array.isArray(page.data) ? page.data : [];
     recentContacts.value = cList.slice(0, 5);
-    stats.value.contacts = cList.length;
+    // Umumiy son paginator'ning `total` maydonidan olinadi (faqat 1-sahifa emas)
+    stats.value.contacts = page.total ?? cList.length;
   } catch (err) {
     recentContacts.value = [];
     contactsError.value = "Murojaatlarni yuklashda xatolik yuz berdi.";

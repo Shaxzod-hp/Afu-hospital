@@ -257,14 +257,18 @@ const saveService = async () => {
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
-    if (form.value.short_description)
-      formData.append("short_description", form.value.short_description);
+    formData.append("short_description", form.value.short_description || "");
     if (form.value.photoFile) formData.append("photo", form.value.photoFile);
 
-    validItems.forEach((item, index) => {
-      formData.append(`included_items[${index}][name]`, item.name);
-      formData.append(`included_items[${index}][price]`, item.price);
-    });
+    if (validItems.length) {
+      validItems.forEach((item, index) => {
+        formData.append(`included_items[${index}][name]`, item.name);
+        formData.append(`included_items[${index}][price]`, item.price);
+      });
+    } else {
+      // Ro'yxat bo'sh bo'lsa ham yuboramiz — backend uni tozalaydi
+      formData.append("included_items", "");
+    }
 
     await servicesService.update(route.params.id, formData);
     router.push("/admin/services");

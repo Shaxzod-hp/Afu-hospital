@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\StatsionarPackage;
+use App\Support\Slug;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class StatsionarPackageController extends Controller
 {
@@ -14,7 +14,7 @@ class StatsionarPackageController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => StatsionarPackage::latest()->paginate(20),
+            'data' => StatsionarPackage::latest()->get(),
         ]);
     }
 
@@ -36,19 +36,17 @@ class StatsionarPackageController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:2',
-            'slug' => 'nullable|string|unique:statsionar_packages,slug',
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255',
             'note' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
             'included_items' => 'nullable|array',
-            'included_items.*' => 'string',
+            'included_items.*' => 'string|max:255',
             'photos' => 'required|array|min:2',
             'photos.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
 
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
+        $validated['slug'] = Slug::unique(StatsionarPackage::class, $validated['slug'] ?? $validated['name']);
 
         $photoPaths = [];
         foreach ($request->file('photos', []) as $file) {
@@ -71,21 +69,25 @@ class StatsionarPackageController extends Controller
         $package = $this->findPackage($idOrSlug);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|min:2',
-            'slug' => 'nullable|string|unique:statsionar_packages,slug,' . $package->id,
+            'name' => 'sometimes|required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255',
             'note' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
             'included_items' => 'nullable|array',
-            'included_items.*' => 'string',
+            'included_items.*' => 'string|max:255',
             'photos' => 'nullable|array|min:2',
             'photos.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
 
-        if (isset($validated['name']) && empty($validated['slug']) && $validated['name'] !== $package->name) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!empty($validated['slug'])) {
+            $validated['slug'] = Slug::unique(StatsionarPackage::class, $validated['slug'], $package->id);
+        } elseif (isset($validated['name']) && $validated['name'] !== $package->name) {
+            $validated['slug'] = Slug::unique(StatsionarPackage::class, $validated['name'], $package->id);
+        } else {
+            unset($validated['slug']);
         }
 
-        // Yangi rasm yuklansa, eskilari ochiriladi
+        // Yangi rasm yuklansa, eskilari o'chiriladi
         if ($request->hasFile('photos')) {
             foreach (($package->photos ?? []) as $oldPhoto) {
                 if (str_starts_with($oldPhoto, '/storage/')) {

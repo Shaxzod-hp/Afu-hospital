@@ -242,7 +242,7 @@ const fetchProfile = async () => {
       profileForm.value.email = data.email || "";
     }
   } catch (err) {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(localStorage.getItem("admin_user") || "{}");
     if (user) {
       profileForm.value.name = user.name || "";
       profileForm.value.email = user.email || "";
@@ -261,9 +261,9 @@ const handleUpdateProfile = async () => {
     successMsg.value =
       res.data?.message || "Profil ma'lumotlari muvaffaqiyatli yangilandi!";
 
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedUser = JSON.parse(localStorage.getItem("admin_user") || "{}");
     localStorage.setItem(
-      "user",
+      "admin_user",
       JSON.stringify({ ...storedUser, ...profileForm.value })
     );
   } catch (err) {

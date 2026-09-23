@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Specialization;
+use App\Support\Slug;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SpecializationController extends Controller
@@ -38,14 +38,12 @@ class SpecializationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:2|unique:specializations,name',
-            'slug' => 'nullable|string|unique:specializations,slug',
+            'name' => 'required|string|min:2|max:255|unique:specializations,name',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
+        $validated['slug'] = Slug::unique(Specialization::class, $validated['slug'] ?? $validated['name']);
 
         $specialization = Specialization::create($validated);
 
@@ -68,16 +66,16 @@ class SpecializationController extends Controller
                 'min:2',
                 Rule::unique('specializations', 'name')->ignore($specialization->id),
             ],
-            'slug' => [
-                'nullable',
-                'string',
-                Rule::unique('specializations', 'slug')->ignore($specialization->id),
-            ],
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        if (isset($validated['name']) && empty($validated['slug']) && $validated['name'] !== $specialization->name) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!empty($validated['slug'])) {
+            $validated['slug'] = Slug::unique(Specialization::class, $validated['slug'], $specialization->id);
+        } elseif (isset($validated['name']) && $validated['name'] !== $specialization->name) {
+            $validated['slug'] = Slug::unique(Specialization::class, $validated['name'], $specialization->id);
+        } else {
+            unset($validated['slug']);
         }
 
         $specialization->update($validated);
@@ -93,18 +91,11 @@ class SpecializationController extends Controller
     {
         $specialization = $this->findSpecialization($idOrSlug);
 
-        if (method_exists($specialization, 'doctors') && $specialization->doctors() && $specialization->doctors()->exists()) {
+        if ($specialization->doctors()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Specialization cannot be deleted because it has associated doctors.',
-            ], 400);
-        }
-
-        if (method_exists($specialization, 'operations') && $specialization->operations() && $specialization->operations()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Specialization cannot be deleted because it has associated operations.',
-            ], 400);
+                'message' => "Bu mutaxassislikka biriktirilgan shifokorlar bor, avval ularni boshqa mutaxassislikka o'tkazing.",
+            ], 422);
         }
 
         $specialization->delete();

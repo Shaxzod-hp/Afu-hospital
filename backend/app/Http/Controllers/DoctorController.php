@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Doctor;
-use App\Models\DoctorSchedule;
+use App\Support\Slug;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class DoctorController extends Controller
 {
+    private const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
     public function index(Request $request): JsonResponse
     {
         $query = Doctor::with(['specialization', 'schedules'])->latest();
@@ -26,21 +29,21 @@ class DoctorController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->paginate(20),
+            'data' => $query->get(),
         ]);
     }
 
     /**
      * ID bo'yicha ham, Slug bo'yicha ham aniq topish uchun
      */
-    private function findDoctor($idOrSlug): Doctor
+    public static function findDoctor($idOrSlug): Doctor
     {
         return Doctor::with(['specialization', 'schedules'])
             ->where(function ($q) use ($idOrSlug) {
-                if (is_numeric($idOrSlug)) {
-                    $q->where('id', $idOrSlug)->orWhere('slug', (string) $idOrSlug);
+                if (ctype_digit((string) $idOrSlug)) {
+                    $q->where('id', (int) $idOrSlug)->orWhere('slug', (string) $idOrSlug);
                 } else {
-                    $q->where('slug', $idOrSlug);
+                    $q->where('slug', (string) $idOrSlug);
                 }
             })
             ->firstOrFail();
@@ -48,7 +51,7 @@ class DoctorController extends Controller
 
     public function show($idOrSlug): JsonResponse
     {
-        $doctor = $this->findDoctor($idOrSlug);
+        $doctor = self::findDoctor($idOrSlug);
 
         return response()->json([
             'success' => true,
@@ -56,69 +59,84 @@ class DoctorController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    private function rules(?Doctor $doctor = null): array
     {
-        $validated = $request->validate([
-            'full_name' => 'required|string|min:2',
-            'slug' => 'nullable|string|unique:doctors,slug',
-            'specialization_id' => 'required|exists:specializations,id',
-            'position' => 'nullable|string',
-            'experience_years' => 'nullable|integer|min:5|max:60',
+        return [
+            'full_name' => ($doctor ? 'sometimes|' : '') . 'required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255',
+            'specialization_id' => ($doctor ? 'sometimes|' : '') . 'required|exists:specializations,id',
+            'position' => 'nullable|string|max:255',
+            'experience_years' => 'nullable|integer|min:0|max:70',
             'bio' => 'nullable|string',
             'education' => 'nullable|string',
             'previous_workplace' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'working_hours' => 'nullable|string',
-            'instagram' => 'nullable|string',
-            'telegram' => 'nullable|string',
-            'whatsapp' => 'nullable|string',
+            'phone' => 'nullable|string|max:50',
+            'working_hours' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
+            'telegram' => 'nullable|string|max:255',
+            'whatsapp' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
-            'schedule' => 'nullable', // FormData'dan keladigan JSON string
-        ]);
+            'schedule' => 'nullable|json', // FormData'dan keladigan JSON string
+        ];
+    }
 
-        // Slug bo'sh bo'lsa me'yoriy unikallashtirib berish
-        if (empty($validated['slug'])) {
-            $baseSlug = Str::slug($validated['full_name']);
-            $slug = $baseSlug;
-            $count = 1;
-
-            while (Doctor::where('slug', $slug)->exists()) {
-                $slug = "{$baseSlug}-{$count}";
-                $count++;
-            }
-            $validated['slug'] = $slug;
+    /**
+     * Frontend yuboradigan { monday: { active, start, end }, ... } obyektini
+     * tekshirib, doctor_schedules jadvaliga yoziladigan qatorlarga aylantiradi.
+     */
+    private function parseSchedule(?string $json): ?array
+    {
+        if ($json === null) {
+            return null;
         }
+
+        $schedule = json_decode($json, true);
+        if (!is_array($schedule)) {
+            throw ValidationException::withMessages(['schedule' => ["Ish jadvali formati noto'g'ri."]]);
+        }
+
+        $rows = [];
+        foreach ($schedule as $day => $info) {
+            if (!in_array($day, self::DAYS, true) || !is_array($info) || empty($info['active'])) {
+                continue;
+            }
+
+            $start = $info['start'] ?? '09:00';
+            $end = $info['end'] ?? '18:00';
+
+            if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start) || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)) {
+                throw ValidationException::withMessages(['schedule' => ["Ish vaqti HH:MM formatida bo'lishi kerak."]]);
+            }
+            if ($start >= $end) {
+                throw ValidationException::withMessages(['schedule' => ["Ish tugash vaqti boshlanish vaqtidan keyin bo'lishi kerak."]]);
+            }
+
+            $rows[] = ['day' => $day, 'start_time' => $start, 'end_time' => $end, 'is_available' => true];
+        }
+
+        return $rows;
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate($this->rules());
+        $scheduleRows = $this->parseSchedule($validated['schedule'] ?? null);
+        unset($validated['schedule']);
+
+        $validated['slug'] = Slug::unique(Doctor::class, $validated['slug'] ?? $validated['full_name']);
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads/doctors', 'public');
             $validated['photo'] = '/storage/' . $path;
         }
 
-        // Schedule ma'lumotlarini alohida ajratib olamiz
-        $scheduleData = $validated['schedule'] ?? null;
-        unset($validated['schedule']); // Doctors jadvalida bu ustun bo'lmagani uchun olib tashlaymiz
-
-        // Shifokorni yaratish
-        $doctor = Doctor::create($validated);
-
-        // Ish vaqtlarini saqlash (doctor_schedules jadvaliga)
-        if ($scheduleData) {
-            $schedules = is_string($scheduleData) ? json_decode($scheduleData, true) : $scheduleData;
-
-            if (is_array($schedules)) {
-                foreach ($schedules as $day => $info) {
-                    if (isset($info['active']) && $info['active'] === true) {
-                        DoctorSchedule::create([
-                            'doctor_id' => $doctor->id,
-                            'day' => $day,
-                            'start_time' => $info['start'] ?? '09:00',
-                            'end_time' => $info['end'] ?? '16:00',
-                            'is_available' => true,
-                        ]);
-                    }
-                }
+        $doctor = DB::transaction(function () use ($validated, $scheduleRows) {
+            $doctor = Doctor::create($validated);
+            if ($scheduleRows) {
+                $doctor->schedules()->createMany($scheduleRows);
             }
-        }
+            return $doctor;
+        });
 
         return response()->json([
             'success' => true,
@@ -129,71 +147,44 @@ class DoctorController extends Controller
 
     public function update(Request $request, $idOrSlug): JsonResponse
     {
-        $doctor = $this->findDoctor($idOrSlug);
+        $doctor = self::findDoctor($idOrSlug);
 
-        $validated = $request->validate([
-            'full_name' => 'sometimes|required|string|min:2',
-            'slug' => 'nullable|string|unique:doctors,slug,' . $doctor->id,
-            'specialization_id' => 'sometimes|required|exists:specializations,id',
-            'position' => 'nullable|string',
-            'experience_years' => 'nullable|integer|min:5|max:60',
-            'bio' => 'nullable|string',
-            'education' => 'nullable|string',
-            'previous_workplace' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'working_hours' => 'nullable|string',
-            'instagram' => 'nullable|string',
-            'telegram' => 'nullable|string',
-            'whatsapp' => 'nullable|string',
-            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
-            'schedule' => 'nullable',
-        ]);
-
-        if (isset($validated['full_name']) && empty($validated['slug']) && $validated['full_name'] !== $doctor->full_name) {
-            $baseSlug = Str::slug($validated['full_name']);
-            $slug = $baseSlug;
-            $count = 1;
-
-            while (Doctor::where('slug', $slug)->where('id', '!=', $doctor->id)->exists()) {
-                $slug = "{$baseSlug}-{$count}";
-                $count++;
-            }
-            $validated['slug'] = $slug;
-        }
-
-        if ($request->hasFile('photo')) {
-            if ($doctor->photo && str_starts_with($doctor->photo, '/storage/')) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $doctor->photo));
-            }
-            $path = $request->file('photo')->store('uploads/doctors', 'public');
-            $validated['photo'] = '/storage/' . $path;
-        }
-
-        // Schedule ma'lumotlarini ajratish
-        $scheduleData = $validated['schedule'] ?? null;
+        $validated = $request->validate($this->rules($doctor));
+        $hasSchedule = array_key_exists('schedule', $validated) && $validated['schedule'] !== null;
+        $scheduleRows = $hasSchedule ? $this->parseSchedule($validated['schedule']) : null;
         unset($validated['schedule']);
 
-        $doctor->update($validated);
+        if (!empty($validated['slug'])) {
+            $validated['slug'] = Slug::unique(Doctor::class, $validated['slug'], $doctor->id);
+        } elseif (isset($validated['full_name']) && $validated['full_name'] !== $doctor->full_name) {
+            $validated['slug'] = Slug::unique(Doctor::class, $validated['full_name'], $doctor->id);
+        } else {
+            unset($validated['slug']);
+        }
 
-        // Agar yangi schedule yuborilgan bo'lsa, eskisini o'chirib, yangisini yozamiz
-        if ($scheduleData !== null) {
-            $doctor->schedules()->delete(); // Eskilarini tozalash
+        $oldPhoto = null;
+        if ($request->hasFile('photo')) {
+            $oldPhoto = $doctor->photo;
+            $path = $request->file('photo')->store('uploads/doctors', 'public');
+            $validated['photo'] = '/storage/' . $path;
+        } else {
+            unset($validated['photo']);
+        }
 
-            $schedules = is_string($scheduleData) ? json_decode($scheduleData, true) : $scheduleData;
+        DB::transaction(function () use ($doctor, $validated, $hasSchedule, $scheduleRows) {
+            $doctor->update($validated);
 
-            if (is_array($schedules)) {
-                foreach ($schedules as $day => $info) {
-                    if (isset($info['active']) && $info['active'] === true) {
-                        DoctorSchedule::create([
-                            'doctor_id' => $doctor->id,
-                            'day' => $day,
-                            'start_time' => $info['start'] ?? '09:00',
-                            'end_time' => $info['end'] ?? '16:00',
-                            'is_available' => true,
-                        ]);
-                    }
+            // Yangi jadval yuborilgan bo'lsa, eskisini almashtiramiz
+            if ($hasSchedule) {
+                $doctor->schedules()->delete();
+                if ($scheduleRows) {
+                    $doctor->schedules()->createMany($scheduleRows);
                 }
             }
+        });
+
+        if ($oldPhoto && str_starts_with($oldPhoto, '/storage/')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $oldPhoto));
         }
 
         return response()->json([
@@ -205,13 +196,26 @@ class DoctorController extends Controller
 
     public function destroy($idOrSlug): JsonResponse
     {
-        $doctor = $this->findDoctor($idOrSlug);
+        $doctor = self::findDoctor($idOrSlug);
 
-        if ($doctor->photo && str_starts_with($doctor->photo, '/storage/')) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $doctor->photo));
+        $files = [];
+        if ($doctor->photo) {
+            $files[] = $doctor->photo;
+        }
+        foreach ($doctor->treatmentLogs as $log) {
+            foreach (($log->photos ?? []) as $photo) {
+                $files[] = $photo;
+            }
         }
 
+        // treatment_logs va doctor_schedules FK orqali cascade o'chadi
         $doctor->delete();
+
+        foreach ($files as $file) {
+            if (str_starts_with($file, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $file));
+            }
+        }
 
         return response()->json([
             'success' => true,

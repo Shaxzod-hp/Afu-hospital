@@ -80,4 +80,4 @@ Route::get('/surgeries/{slug}', [SurgeryController::class, 'show']);
 Route::get('/doctors/{slug}/treatment-logs', [TreatmentLogController::class, 'forDoctor']);
 
 // Public Contacts routes
-Route::post('/contacts', [ContactController::class, 'store']);
+Route::post('/contacts', [ContactController::class, 'store'])->middleware('throttle:contact');

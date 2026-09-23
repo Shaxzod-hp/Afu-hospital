@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Surgery;
+use App\Support\Slug;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class SurgeryController extends Controller
 {
@@ -14,7 +14,7 @@ class SurgeryController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => Surgery::latest()->paginate(20),
+            'data' => Surgery::latest()->get(),
         ]);
     }
 
@@ -36,18 +36,16 @@ class SurgeryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:2',
-            'slug' => 'nullable|string|unique:surgeries,slug',
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255',
             'short_description' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
             'included_items' => 'nullable|array',
-            'included_items.*.name' => 'required_with:included_items|string',
+            'included_items.*.name' => 'required_with:included_items|string|max:255',
             'included_items.*.price' => 'required_with:included_items|numeric|min:0',
         ]);
 
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
+        $validated['slug'] = Slug::unique(Surgery::class, $validated['slug'] ?? $validated['name']);
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads/surgeries', 'public');
@@ -68,17 +66,21 @@ class SurgeryController extends Controller
         $surgery = $this->findSurgery($idOrSlug);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|min:2',
-            'slug' => 'nullable|string|unique:surgeries,slug,' . $surgery->id,
+            'name' => 'sometimes|required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255',
             'short_description' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
             'included_items' => 'nullable|array',
-            'included_items.*.name' => 'required_with:included_items|string',
+            'included_items.*.name' => 'required_with:included_items|string|max:255',
             'included_items.*.price' => 'required_with:included_items|numeric|min:0',
         ]);
 
-        if (isset($validated['name']) && empty($validated['slug']) && $validated['name'] !== $surgery->name) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!empty($validated['slug'])) {
+            $validated['slug'] = Slug::unique(Surgery::class, $validated['slug'], $surgery->id);
+        } elseif (isset($validated['name']) && $validated['name'] !== $surgery->name) {
+            $validated['slug'] = Slug::unique(Surgery::class, $validated['name'], $surgery->id);
+        } else {
+            unset($validated['slug']);
         }
 
         if ($request->hasFile('photo')) {
@@ -87,6 +89,8 @@ class SurgeryController extends Controller
             }
             $path = $request->file('photo')->store('uploads/surgeries', 'public');
             $validated['photo'] = '/storage/' . $path;
+        } else {
+            unset($validated['photo']);
         }
 
         $surgery->update($validated);

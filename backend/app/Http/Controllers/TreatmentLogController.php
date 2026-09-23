@@ -14,7 +14,7 @@ class TreatmentLogController extends Controller
     {
         $query = TreatmentLog::with('doctor')->latest();
 
-        if ($request->has('doctor_id')) {
+        if ($request->filled('doctor_id')) {
             $query->where('doctor_id', $request->doctor_id);
         }
 
@@ -27,17 +27,8 @@ class TreatmentLogController extends Controller
     // Public: today's active logs for one doctor (slug yoki id orqali ishlashi uchun)
     public function forDoctor($idOrSlug): JsonResponse
     {
-        // Shifokorni ID yoki Slug bo'yicha topamiz
-        $doctor = \App\Models\Doctor::where('id', $idOrSlug)
-            ->orWhere('slug', $idOrSlug)
-            ->first();
-
-        if (!$doctor) {
-            return response()->json([
-                'success' => true,
-                'data' => [],
-            ]);
-        }
+        // Shifokorni ID yoki Slug bo'yicha topamiz ("5-ali" slug'i ID 5 ga aylanib ketmasligi uchun)
+        $doctor = DoctorController::findDoctor($idOrSlug);
 
         $logs = TreatmentLog::where('doctor_id', $doctor->id)
             ->where('created_at', '>=', now()->subHours(24))

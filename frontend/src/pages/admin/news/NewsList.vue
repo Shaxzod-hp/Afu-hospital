@@ -146,7 +146,7 @@ const fetchNews = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const res = await api.get("/admin/news");
+    const res = await api.get("/admin/news", { params: { per_page: 100 } });
     const data = res.data?.data || res.data || [];
     news.value = Array.isArray(data) ? data : [];
   } catch (err) {
