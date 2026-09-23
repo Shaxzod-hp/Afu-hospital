@@ -9,9 +9,7 @@ export default {
 
   fetchOne: (idOrSlug) => api.get(`/doctors/${idOrSlug}`).then(unwrap),
 
-  fetchLogs(slugOrId) {
-      return api.get(`/doctors/${slugOrId}/treatment-logs`).then(res => res.data);
-  },
+  fetchLogs: (slugOrId) => api.get(`/doctors/${slugOrId}/treatment-logs`).then(unwrap),
 
   adminFetchAll: (specializationId = null) => {
     const params = specializationId ? { specialization_id: specializationId } : {}

@@ -92,7 +92,7 @@ import surgeryService from "../../../services/surgeryService";
 
 const loading = ref(false);
 const rawSurgeries = ref([]);
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const getImageUrl = (s) => {
   const raw = s.image || s.photo || s.image_url || s.photo_url || null;

@@ -156,7 +156,7 @@ const news = computed(() => {
 });
 
 // Domenning faqat o'zini yozamiz (oxirida /api bo'lmasligi shart)
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return "/images/default-news.jpg";

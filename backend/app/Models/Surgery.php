@@ -13,7 +13,7 @@ class Surgery extends Model
         'name',
         'short_description',
         'photo',
-        'included_services',
+        'included_items',
         'price',
         'slug'
     ];

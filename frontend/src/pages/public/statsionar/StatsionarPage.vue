@@ -134,7 +134,7 @@ const loading = computed(() => statsionarStore.loading);
 const error = computed(() => statsionarStore.error);
 const packages = computed(() => statsionarStore.packages);
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const getPhotos = (pkg) => (Array.isArray(pkg.photos) ? pkg.photos : []);
 

@@ -19,7 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
+    // Bir nechta domen vergul bilan: FRONTEND_URL=https://afu-hospital.uz,https://www.afu-hospital.uz
+    'allowed_origins' => array_map('trim', explode(',', env('FRONTEND_URL', 'http://localhost:5173'))),
 
     'allowed_origins_patterns' => [],
 

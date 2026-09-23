@@ -221,7 +221,7 @@ const successMsg = ref("");
 const fileInputRef = ref(null);
 const isDragOver = ref(false);
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const existingLogs = ref([]);
 const loadingLogs = ref(true);

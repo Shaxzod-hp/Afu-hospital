@@ -106,7 +106,7 @@
 import { ref, onMounted } from "vue";
 import newsService from "../../../services/newsService";
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 const news = ref([]);
 const loading = ref(true);
 

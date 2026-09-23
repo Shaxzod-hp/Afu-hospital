@@ -144,7 +144,7 @@ const servicesStore = useServicesStore();
 const service = ref(null);
 const loading = ref(true);
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const getPhotoUrl = (photo, name) => {
   if (!photo) {

@@ -177,30 +177,43 @@
 
 <script setup>
 import { ref, reactive } from "vue";
-import { useRoute } from "vue-router";
-import axios from "axios";
+import contactsService from "@/services/contactsService";
+import { validateContactForm } from "@/utils/validators";
 
-const route = useRoute();
 const form = reactive({ name: "", phone: "", specialty: "", message: "" });
 const submitting = ref(false);
 const successMsg = ref("");
 const errorMsg = ref("");
 
 const submitForm = async () => {
-  if (!form.name || !form.phone) return;
-  submitting.value = true;
   successMsg.value = "";
   errorMsg.value = "";
+
+  const { valid, errors } = validateContactForm(form);
+  if (!valid) {
+    errorMsg.value = Object.values(errors)[0];
+    return;
+  }
+
+  submitting.value = true;
   try {
-    await axios.post("/api/contacts", { ...form });
+    await contactsService.submit({ ...form });
     successMsg.value =
       "Arizangiz qabul qilindi! Tez orada siz bilan bog'lanamiz.";
     Object.assign(form, { name: "", phone: "", specialty: "", message: "" });
   } catch (e) {
-    errorMsg.value =
-      e.response?.data?.message ||
-      "Xabaringiz vaqtinchalik saqlandi. Tez orada bog'lanamiz.";
-    Object.assign(form, { name: "", phone: "", specialty: "", message: "" });
+    // Forma tozalanmaydi — foydalanuvchi qayta yuborishi mumkin
+    const errs = e.response?.data?.errors;
+    if (e.response?.status === 429) {
+      errorMsg.value =
+        "Juda ko'p urinish. Iltimos, birozdan so'ng qayta urinib ko'ring.";
+    } else if (errs) {
+      const first = Object.values(errs)[0];
+      errorMsg.value = Array.isArray(first) ? first[0] : first;
+    } else {
+      errorMsg.value =
+        "Xabarni yuborib bo'lmadi. Iltimos, qayta urinib ko'ring yoki bizga qo'ng'iroq qiling.";
+    }
   } finally {
     submitting.value = false;
   }

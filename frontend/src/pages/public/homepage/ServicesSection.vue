@@ -95,7 +95,7 @@ import { computed, ref, onMounted } from "vue";
 import { useServicesStore } from "../../../stores/services";
 
 const store = useServicesStore();
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 const loading = ref(true);
 
 const featured = computed(() => {

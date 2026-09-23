@@ -154,7 +154,7 @@ import { useDoctorsStore } from "../../../stores/doctors";
 
 const modules = [EffectCoverflow, Autoplay, Navigation, Pagination];
 const store = useDoctorsStore();
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const swiperInstance = ref(null);
 const loading = ref(false);

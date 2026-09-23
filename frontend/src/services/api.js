@@ -16,6 +16,8 @@ api.interceptors.request.use(config => {
   // Standart 'application/json' buni buzadi, shuning uchun o'chiramiz.
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type']
+    // Rasm yuklash sekin tarmoqda 10 soniyadan uzoq davom etishi mumkin
+    config.timeout = 120000
   }
 
   return config
@@ -28,7 +30,10 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
-      window.location.href = '/admin/login'
+      const adminPrefix = `/${import.meta.env.VITE_ADMIN_PATH || 'admin'}`
+      if (window.location.pathname.startsWith(adminPrefix)) {
+        window.location.href = `${adminPrefix}/login`
+      }
     }
     return Promise.reject(err)
   }

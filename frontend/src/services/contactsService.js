@@ -1,8 +1,11 @@
 import api, { unwrap } from './api'
 
 export default {
-  fetchAll:  ()     => api.get('/contacts').then(unwrap),
+  // Public
   submit:    (data) => api.post('/contacts', data).then(unwrap),
-  markRead:  (id)   => api.patch(`/contacts/${id}/read`).then(unwrap),
-  remove:    (id)   => api.delete(`/contacts/${id}`),
+
+  // Admin (protected)
+  fetchAll:  (page = 1) => api.get('/admin/contacts', { params: { page } }).then(res => res.data),
+  markRead:  (id)   => api.put(`/admin/contacts/${id}`, { read: true }).then(unwrap),
+  remove:    (id)   => api.delete(`/admin/contacts/${id}`),
 }

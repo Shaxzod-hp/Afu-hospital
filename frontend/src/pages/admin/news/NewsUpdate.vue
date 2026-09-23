@@ -222,7 +222,7 @@ import api from "@/services/api";
 const route = useRoute();
 const router = useRouter();
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const loadingData = ref(true);
 const saving = ref(false);

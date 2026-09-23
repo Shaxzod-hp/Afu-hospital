@@ -120,7 +120,7 @@ import surgeryService from "../../../services/surgeryService";
 
 const route = useRoute();
 const router = useRouter();
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const form = reactive({
   name: "",

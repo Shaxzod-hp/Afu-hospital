@@ -70,7 +70,7 @@ import { useRoute } from "vue-router";
 import newsService from "../../../services/newsService";
 
 const route = useRoute();
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const news = ref(null);
 const loading = ref(true);

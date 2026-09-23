@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 !frontend/.env.example
+!frontend/.env.development
+!frontend/.env.production
 
 # --- Database dumps & local DBs (contain real patient data) ---
 *.sql
@@ -43,3 +45,6 @@ frontend/dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# --- Claude Code local settings ---
+.claude/settings.local.json

@@ -440,7 +440,7 @@ const loading = ref(true);
 const treatmentLogs = ref([]);
 const activeTab = ref("info");
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const weekDays = [
   { key: "monday", name: "Dushanba" },

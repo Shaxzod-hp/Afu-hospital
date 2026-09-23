@@ -374,16 +374,24 @@ const fetchDoctor = async () => {
     const data = await doctorsService.fetchOne(route.params.id);
     const doctor = data?.data || data;
 
-    // Backenddan kelgan schedule'ni obyektga o'tkazish (agar JSON string yoki obyekt bo'lsa)
+    // Backend doctor_schedules jadvalidan `schedules` massivini qaytaradi:
+    // [{ day: "monday", start_time: "09:00:00", end_time: "18:00:00" }, ...]
+    // Undan formadagi { monday: { active, start, end }, ... } obyektini quramiz.
     let parsedSchedule = form.value.schedule;
-    if (doctor.schedule) {
-      try {
-        parsedSchedule =
-          typeof doctor.schedule === "string"
-            ? JSON.parse(doctor.schedule)
-            : doctor.schedule;
-      } catch (e) {
-        // xatolik bo'lsa default qoladi
+    if (Array.isArray(doctor.schedules)) {
+      const hhmm = (t, fallback) => (t ? String(t).slice(0, 5) : fallback);
+      parsedSchedule = {};
+      for (const { key } of weekDaysMap) {
+        const row = doctor.schedules.find(
+          (s) => String(s.day).toLowerCase() === key
+        );
+        parsedSchedule[key] = row
+          ? {
+              active: row.is_available !== false && row.is_available !== 0,
+              start: hhmm(row.start_time, "09:00"),
+              end: hhmm(row.end_time, "18:00"),
+            }
+          : { active: false, start: "09:00", end: "18:00" };
       }
     }
 
@@ -403,7 +411,11 @@ const fetchDoctor = async () => {
       photoFile: null,
       schedule: parsedSchedule,
     };
-    photoPreview.value = doctor.photo || null;
+    photoPreview.value = doctor.photo
+      ? doctor.photo.startsWith("http")
+        ? doctor.photo
+        : (import.meta.env.VITE_STORAGE_URL || "") + doctor.photo
+      : null;
   } catch (err) {
     loadError.value = "Shifokor ma'lumotlarini yuklashda xatolik yuz berdi.";
   } finally {
@@ -466,9 +478,6 @@ const saveDoctor = async () => {
     if (form.value.telegram) formData.append("telegram", form.value.telegram);
     if (form.value.whatsapp) formData.append("whatsapp", form.value.whatsapp);
     if (form.value.photoFile) formData.append("photo", form.value.photoFile);
-
-    // PUT/POST metodlari ba'zi backendlarda FormData bilan ishlashda _method qo'shishni talab qilishi mumkin
-    formData.append("_method", "PUT");
 
     await doctorsService.update(route.params.id, formData);
     router.push("/admin/doctors");

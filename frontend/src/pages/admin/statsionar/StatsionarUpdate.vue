@@ -222,7 +222,7 @@ const saving = ref(false);
 const formError = ref("");
 const fileInput = ref(null);
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const existingPhotos = ref([]);
 const replacingPhotos = ref(false);

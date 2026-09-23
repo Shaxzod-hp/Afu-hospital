@@ -122,7 +122,7 @@ const services = computed(() => servicesStore.services);
 const loading = computed(() => servicesStore.loading);
 const error = computed(() => servicesStore.error);
 
-const backendUrl = import.meta.env.VITE_API_URL || "";
+const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 const getPhotoUrl = (photo, name) => {
   if (!photo) {
     return (
