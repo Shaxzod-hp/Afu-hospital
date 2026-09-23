@@ -90,6 +90,24 @@
         </div>
       </div>
 
+      <!-- LOAD MORE -->
+      <div
+        v-if="!loading && news.length && currentPage < lastPage"
+        class="text-center mt-4 mt-lg-5"
+      >
+        <button
+          class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          <span
+            v-if="loadingMore"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          Ko'proq yangiliklar
+        </button>
+      </div>
+
       <!-- EMPTY STATE -->
       <div v-if="!loading && news.length === 0" class="text-center py-5">
         <i class="bi bi-newspaper display-4 text-muted opacity-50"></i>
@@ -132,17 +150,39 @@ const truncate = (html) => {
   return text.length > 120 ? text.slice(0, 120) + "..." : text;
 };
 
+const currentPage = ref(1);
+const lastPage = ref(1);
+const loadingMore = ref(false);
+
+const loadPage = async (page) => {
+  const res = await newsService.fetchPage(page, 12);
+  currentPage.value = res?.current_page || 1;
+  lastPage.value = res?.last_page || 1;
+  const list = Array.isArray(res?.data) ? res.data : [];
+  return list.filter((n) => n && (n.slug || n.id));
+};
+
 const fetchNews = async () => {
   loading.value = true;
   try {
-    const data = await newsService.fetchAll({ per_page: 100 });
-    const list =
-      data?.data?.data || data?.data || (Array.isArray(data) ? data : []);
-    news.value = list.filter((n) => n && (n.slug || n.id));
+    news.value = await loadPage(1);
   } catch (err) {
     news.value = [];
   } finally {
     loading.value = false;
+  }
+};
+
+const loadMore = async () => {
+  loadingMore.value = true;
+  try {
+    const more = await loadPage(currentPage.value + 1);
+    const ids = new Set(news.value.map((n) => n.id));
+    news.value.push(...more.filter((n) => !ids.has(n.id)));
+  } catch (err) {
+    // tugma qayta bosilishi mumkin
+  } finally {
+    loadingMore.value = false;
   }
 };
 

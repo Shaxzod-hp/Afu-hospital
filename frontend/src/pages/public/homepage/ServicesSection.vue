@@ -99,7 +99,7 @@ const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 const loading = ref(true);
 
 const featured = computed(() => {
-  const allServices = store.services || store.featured || [];
+  const allServices = store.services || [];
   if (!allServices.length) return [];
 
   const keywords = [

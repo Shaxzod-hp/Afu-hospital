@@ -28,7 +28,9 @@ class NewsController extends Controller
             $query->where('is_published', true);
         }
 
-        $perPage = min(max((int) $request->input('per_page', 12), 1), 100);
+        // Admin ro'yxati barcha yangiliklarni bir sahifada ko'rsatadi
+        $maxPerPage = $this->isAdminRequest($request) ? 1000 : 100;
+        $perPage = min(max((int) $request->input('per_page', 12), 1), $maxPerPage);
 
         return response()->json($query->paginate($perPage));
     }

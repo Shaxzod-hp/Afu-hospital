@@ -9,6 +9,9 @@ export default {
 
   fetchOne: (idOrSlug) => api.get(`/doctors/${idOrSlug}`).then(unwrap),
 
+  // Ommaviy mutaxassisliklar ro'yxati (footer va shifokorlar filtri uchun)
+  fetchSpecialties: () => api.get('/specializations').then(unwrap),
+
   fetchLogs: (slugOrId) => api.get(`/doctors/${slugOrId}/treatment-logs`).then(unwrap),
 
   adminFetchAll: (specializationId = null) => {

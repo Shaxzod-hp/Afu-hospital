@@ -164,14 +164,9 @@ const onSwiper = (swiper) => {
 };
 
 // Original shifokorlar ro'yxati
-const rawDoctors = computed(() => {
-  const featured = store.featured;
-  const doctors = store.doctors;
-
-  if (Array.isArray(featured) && featured.length) return featured;
-  if (Array.isArray(doctors)) return doctors;
-  return [];
-});
+const rawDoctors = computed(() =>
+  Array.isArray(store.doctors) ? store.doctors : []
+);
 
 // Slaydlar cheksiz va uzluksiz aylanishi uchun ro'yxatni yetarlicha ko'paytiramiz (kamida 15 ta)
 const displayDoctors = computed(() => {

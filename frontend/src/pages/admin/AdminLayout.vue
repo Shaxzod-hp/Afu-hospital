@@ -75,12 +75,12 @@
         <div class="topbar-right">
           <div class="admin-profile">
             <div class="text-end d-none d-sm-block me-3">
-              <div class="admin-name">Administrator</div>
-              <div class="admin-role">Super Admin</div>
+              <div class="admin-name">{{ adminUser.name || "Administrator" }}</div>
+              <div class="admin-role">{{ adminUser.email || "Admin" }}</div>
             </div>
             <div class="admin-avatar">
               <img
-                src="https://ui-avatars.com/api/?name=Admin&background=0284c7&color=fff"
+                :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser.name || 'Admin')}&background=0284c7&color=fff`"
                 alt="Avatar"
               />
             </div>
@@ -101,8 +101,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-// Agar auth store ishlatsangiz yoki o'zingizning holatingiz bo'yicha qoldirasiz:
-// import { useAuthStore } from "@/stores/auth";
+import api from "../../services/api";
+
+const adminUser = (() => {
+  try {
+    return JSON.parse(localStorage.getItem("admin_user") || "{}") || {};
+  } catch {
+    return {};
+  }
+})();
 
 const isCollapse = ref(false);
 const isMobile = ref(false);
@@ -158,12 +165,17 @@ const closeSidebarOnMobile = () => {
   }
 };
 
-const handleLogout = () => {
-  if (confirm("Tizimdan chiqishni xohlaysizmi?")) {
-    localStorage.removeItem("admin_token");
-    localStorage.removeItem("admin_user");
-    router.push({ name: "admin-login" });
+const handleLogout = async () => {
+  if (!confirm("Tizimdan chiqishni xohlaysizmi?")) return;
+  try {
+    // Tokenni serverda ham bekor qilamiz — aks holda o'g'irlangan token amal qilishda davom etadi
+    await api.post("/auth/logout");
+  } catch {
+    // Token allaqachon yaroqsiz bo'lsa ham chiqishni davom ettiramiz
   }
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  router.push({ name: "admin-login" });
 };
 
 onMounted(() => {

@@ -208,20 +208,24 @@ const fetchDashboardData = async () => {
   loadingContacts.value = true;
   contactsError.value = null;
 
-  // 1. Fetch Real Specializations API
-  try {
-    const resSpec = await api.get("/admin/specializations");
-    const specList = Array.isArray(resSpec.data?.data)
-      ? resSpec.data.data
-      : Array.isArray(resSpec.data)
-      ? resSpec.data
-      : [];
-    stats.value.specializations = specList.length;
-  } catch (err) {
-    stats.value.specializations = 0;
-  } finally {
-    statsLoading.value = false;
-  }
+  // 1. Statistika: hamma so'rovlar parallel, bittasi xato bersa qolganlari ishlaydi
+  const listCount = (res) =>
+    Array.isArray(res?.data?.data) ? res.data.data.length : 0;
+
+  const [specRes, doctorsRes, newsRes] = await Promise.allSettled([
+    api.get("/admin/specializations"),
+    api.get("/admin/doctors"),
+    api.get("/admin/news", { params: { per_page: 1 } }),
+  ]);
+
+  stats.value.specializations =
+    specRes.status === "fulfilled" ? listCount(specRes.value) : 0;
+  stats.value.doctors =
+    doctorsRes.status === "fulfilled" ? listCount(doctorsRes.value) : 0;
+  // Yangiliklar paginator qaytaradi — umumiy son `total` da
+  stats.value.news =
+    newsRes.status === "fulfilled" ? newsRes.value.data?.total ?? 0 : 0;
+  statsLoading.value = false;
 
   // 2. Fetch Contacts API
   try {

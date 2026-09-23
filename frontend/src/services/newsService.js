@@ -4,6 +4,10 @@ export default {
   // Public
   fetchAll: (params = {}) => api.get('/news', { params }).then(unwrap),
 
+  // Laravel paginator'ni to'liq qaytaradi: { data, current_page, last_page, total }
+  fetchPage: (page = 1, perPage = 12) =>
+    api.get('/news', { params: { page, per_page: perPage } }).then(res => res.data),
+
   // ID yoki SLUG orqali yangilikni olish
   fetchOne: (idOrSlug) => api.get(`/news/${idOrSlug}`).then(unwrap),
 

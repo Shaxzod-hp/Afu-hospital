@@ -6,7 +6,7 @@
   >
     <nav class="navbar-luxe d-none d-lg-block">
       <div
-        class="mx-5 d-flex align-items-center justify-content-between header-container"
+        class="d-flex align-items-center justify-content-between header-container"
       >
         <router-link
           to="/"
@@ -19,7 +19,7 @@
           />
         </router-link>
         <ul
-          class="list-unstyled d-flex align-items-center gap-4 mb-0 flex-grow-1 justify-content-center"
+          class="list-unstyled d-flex align-items-center mb-0 flex-grow-1 justify-content-center header-menu"
         >
           <li
             v-for="menu in menuItems"
@@ -129,10 +129,11 @@
           </button>
           <a
             href="tel:+998781222244"
+            aria-label="Qo'ng'iroq qilish: +998 78 122 22 44"
             class="btn btn-danger rounded-pill px-4 py-2 d-flex align-items-center gap-2 call-btn fw-bold shadow-sm"
           >
             <i class="bi bi-headset fs-5"></i>
-            <span>+998 78 122 22 44</span>
+            <span class="call-btn-text">+998 78 122 22 44</span>
           </a>
         </div>
       </div>
@@ -444,6 +445,38 @@ const closeSidebar = () => {
   height: 74px;
   max-width: 1430px;
   width: 100%;
+  margin: 0 auto;
+  padding: 0 3rem;
+  gap: 1rem;
+}
+
+.header-menu {
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.call-btn {
+  white-space: nowrap;
+}
+
+/* Noutbuklar (992–1399px): menyu siqilmasin, tugma ekrandan chiqmasin */
+@media (max-width: 1399.98px) {
+  .header-container {
+    padding: 0 1.5rem;
+  }
+  .header-menu {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .call-btn {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  .call-btn-text {
+    display: none;
+  }
 }
 
 .header-logo {

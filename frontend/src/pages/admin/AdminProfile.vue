@@ -131,9 +131,9 @@
                           :type="showNewPassword ? 'text' : 'password'"
                           v-model="pwdForm.new_password"
                           class="form-control form-control-glass"
-                          placeholder="Minimal 6 ta belgi"
+                          placeholder="Minimal 8 ta belgi"
                           required
-                          minlength="6"
+                          minlength="8"
                           autocomplete="new-password"
                         />
                         <button
@@ -164,7 +164,7 @@
                           class="form-control form-control-glass"
                           placeholder="••••••••"
                           required
-                          minlength="6"
+                          minlength="8"
                           autocomplete="new-password"
                         />
                         <button

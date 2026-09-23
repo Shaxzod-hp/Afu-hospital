@@ -102,7 +102,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'current_password' => 'required|string',
-            'new_password' => 'required|string|min:6|confirmed',
+            'new_password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = $request->user();
@@ -129,7 +129,8 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $request->user()->id,
+            // not_regex: Laravel 10 email qoidasidagi CRLF zaifligiga (GHSA-5vg9-5847-vvmq) qarshi
+            'email' => ['required', 'email', 'max:255', 'not_regex:/[\r\n]/', 'unique:users,email,' . $request->user()->id],
         ]);
 
         $user = $request->user();
