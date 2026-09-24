@@ -835,14 +835,14 @@ watch(
 }
 
 .btn-akfa-red {
-  background-color: #e53935;
+  background-color: #e31e24;
   color: #ffffff;
   border: none;
   transition: all 0.25s ease;
 }
 
 .btn-akfa-red:hover {
-  background-color: #d32f2f;
+  background-color: #e31e24;
   color: #ffffff;
 }
 

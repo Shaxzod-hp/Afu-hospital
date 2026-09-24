@@ -352,12 +352,12 @@ const handleDelete = async (id) => {
 }
 
 .delete-btn {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.12);
+  color: #e31e24;
 }
 
 .delete-btn:hover {
-  background: #ef4444;
+  background: #e31e24;
   color: white;
 }
 

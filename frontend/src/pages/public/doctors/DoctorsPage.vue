@@ -399,14 +399,14 @@ onMounted(async () => {
 }
 
 .btn-akfa-red {
-  background-color: #e53935;
+  background-color: #e31e24;
   color: #ffffff;
   border: none;
   transition: background-color 0.2s ease;
 }
 
 .btn-akfa-red:hover {
-  background-color: #d32f2f;
+  background-color: #e31e24;
   color: #ffffff;
 }
 
@@ -416,8 +416,8 @@ onMounted(async () => {
 }
 
 .custom-checkbox .form-check-input:checked {
-  background-color: #e53935;
-  border-color: #e53935;
+  background-color: #e31e24;
+  border-color: #e31e24;
 }
 
 .doctor-vertical-card {

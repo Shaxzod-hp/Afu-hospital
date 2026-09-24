@@ -49,6 +49,7 @@ class ContactController extends Controller
         $chatId = config('services.telegram.chat_id');
 
         if (!$botToken || !$chatId) {
+            Log::warning('Telegram notification skipped: TELEGRAM_BOT_TOKEN yoki TELEGRAM_GROUP_CHAT_ID sozlanmagan (config:cache ni yangilang)');
             return;
         }
 
@@ -64,14 +65,22 @@ class ContactController extends Controller
         $text .= "\n🕒 <b>Sana:</b> " . $contact->created_at->timezone(config('app.timezone'))->format('Y-m-d H:i');
 
         try {
-            $response = Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $text,
-                'parse_mode' => 'HTML',
-            ]);
+            // Ko'p hostinglarda IPv6 orqali api.telegram.org ga ulanish osilib qoladi — IPv4 majburiy
+            $response = Http::connectTimeout(5)
+                ->timeout(10)
+                ->retry(2, 500, throw: false)
+                ->withOptions(['force_ip_resolve' => 'v4'])
+                ->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $text,
+                    'parse_mode' => 'HTML',
+                ]);
 
             if ($response->failed()) {
-                Log::warning('Telegram notification failed', ['status' => $response->status()]);
+                Log::warning('Telegram notification failed', [
+                    'status' => $response->status(),
+                    'description' => $response->json('description'),
+                ]);
             }
         } catch (\Throwable $e) {
             // Telegram ishlamasa ham murojaat bazaga saqlangan — foydalanuvchiga xato ko'rsatmaymiz

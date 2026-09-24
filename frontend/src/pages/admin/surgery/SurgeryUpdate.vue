@@ -256,11 +256,11 @@ const handleSubmit = async () => {
 }
 
 .is-invalid-glass {
-  border-color: #ef4444 !important;
+  border-color: #e31e24 !important;
 }
 
 .error-text {
-  color: #ef4444;
+  color: #e31e24;
   font-size: 0.8rem;
   font-weight: 600;
   margin-top: 4px;
@@ -323,13 +323,13 @@ const handleSubmit = async () => {
   min-width: 44px;
   border: none;
   border-radius: 12px;
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.12);
+  color: #e31e24;
   transition: all 0.2s ease;
 }
 
 .btn-icon-danger:hover {
-  background: #ef4444;
+  background: #e31e24;
   color: white;
 }
 </style>

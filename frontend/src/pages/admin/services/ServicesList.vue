@@ -276,7 +276,7 @@ const handleDelete = async (id) => {
 }
 
 .delete-overlay-btn:hover {
-  background: #ef4444;
+  background: #e31e24;
 }
 
 .service-card-body {

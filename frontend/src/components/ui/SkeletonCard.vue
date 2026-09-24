@@ -95,6 +95,50 @@
       </div>
     </template>
 
+    <!-- ── NEWS variant (yangilik kartasi: rasm + sana + sarlavha + matn) ── -->
+    <template v-else-if="variant === 'news'">
+      <div class="sk-card">
+        <div class="sk-block sk-card-img"></div>
+        <div class="sk-card-body">
+          <div class="sk-block sk-line sk-line-sm mb-3" style="width: 35%"></div>
+          <div class="sk-block sk-line sk-line-xl mb-2"></div>
+          <div class="sk-block sk-line sk-line-md mb-4" style="height: 22px"></div>
+          <div class="sk-block sk-line sk-line-full mb-2"></div>
+          <div class="sk-block sk-line sk-line-full mb-2"></div>
+          <div class="sk-block sk-line sk-line-md mb-4"></div>
+          <div class="sk-block sk-line sk-line-sm" style="width: 30%"></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ── DOCTOR variant (shifokor kartasi: portret + ism + mutaxassislik) ── -->
+    <template v-else-if="variant === 'doctor'">
+      <div class="sk-card">
+        <div class="sk-block sk-card-img sk-card-img--portrait"></div>
+        <div class="sk-card-body text-center">
+          <div class="sk-block sk-line sk-line-lg mx-auto mb-3" style="height: 18px"></div>
+          <div class="sk-block sk-line sk-line-md mx-auto mb-4"></div>
+          <div class="sk-block sk-btn-pill mx-auto"></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ── ARTICLE variant (yangilik / xizmat matni sahifasi) ── -->
+    <template v-else-if="variant === 'article'">
+      <div class="sk-article">
+        <div class="sk-block sk-line sk-line-sm mb-3" style="width: 160px"></div>
+        <div class="sk-block sk-line mb-2" style="height: 34px; width: 90%"></div>
+        <div class="sk-block sk-line mb-4" style="height: 34px; width: 60%"></div>
+        <div class="d-flex gap-3 mb-4">
+          <div class="sk-block sk-chip"></div>
+          <div class="sk-block sk-chip"></div>
+          <div class="sk-block sk-chip"></div>
+        </div>
+        <div class="sk-block sk-article-img mb-4"></div>
+        <div v-for="n in 6" :key="n" class="sk-block sk-line mb-3" :style="{ width: n % 3 === 0 ? '65%' : '100%' }"></div>
+      </div>
+    </template>
+
   </div>
 </template>
 
@@ -103,33 +147,24 @@ defineProps({
   variant: {
     type: String,
     default: 'overlay',
-    validator: (v) => ['overlay', 'statsionar', 'detail'].includes(v),
+    validator: (v) =>
+      ['overlay', 'statsionar', 'detail', 'news', 'doctor', 'article'].includes(v),
   },
 })
 </script>
 
 <style scoped>
-/* ─────────────────────────────────────────────
-   SHIMMER KEYFRAME
-   All skeleton blocks share this animation.
-───────────────────────────────────────────── */
-@keyframes sk-shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
-}
-
-/* Base "block" — applies the shimmer gradient to any element */
+/* Base "block" — ranglar main.css dagi --sk-base / --sk-shine (light va dark) */
 .sk-block {
-  background: linear-gradient(
-    90deg,
-    #e2e8f0 25%,
-    #f1f5f9 50%,
-    #e2e8f0 75%
-  );
-  background-size: 600px 100%;
-  animation: sk-shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
   border-radius: 8px;
   flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-block { animation: none; }
 }
 
 /* ─────────────────────────────────────────────
@@ -168,14 +203,6 @@ defineProps({
   position: absolute;
   inset: 0;
   border-radius: 22px;
-  /* override the shared gradient with a slightly darker variant */
-  background: linear-gradient(
-    90deg,
-    #dde4ed 25%,
-    #eef2f7 50%,
-    #dde4ed 75%
-  );
-  background-size: 600px 100%;
 }
 
 /* Text content pinned to bottom, mirroring .overlay-content */
@@ -197,7 +224,7 @@ defineProps({
     rgba(255,255,255,0.45) 50%,
     rgba(255,255,255,0.22) 75%
   );
-  background-size: 600px 100%;
+  background-size: 200% 100%;
 }
 
 @media (max-width: 768px) {
@@ -295,8 +322,8 @@ defineProps({
 }
 
 .sk-detail-card {
-  background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
   border-radius: 16px;
   padding: 32px;
   display: flex;
@@ -329,12 +356,51 @@ defineProps({
   flex-wrap: wrap;
   gap: 12px;
   padding: 16px;
-  background: #f1f5f9;
+  background: var(--clr-faint);
   border-radius: 16px;
   margin-top: auto;
 }
 
 @media (max-width: 991px) {
   .sk-detail-img { height: 300px; }
+}
+
+/* ─────────────────────────────────────────────
+   NEWS / DOCTOR CARD VARIANTS
+───────────────────────────────────────────── */
+.sk-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 20px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sk-card-img {
+  height: 220px;
+  border-radius: 0;
+}
+
+.sk-card-img--portrait {
+  height: 300px;
+}
+
+.sk-card-body {
+  padding: 22px;
+}
+
+/* ─────────────────────────────────────────────
+   ARTICLE VARIANT
+───────────────────────────────────────────── */
+.sk-article-img {
+  height: 380px;
+  border-radius: 20px;
+}
+
+@media (max-width: 576px) {
+  .sk-card-img { height: 190px; }
+  .sk-card-img--portrait { height: 260px; }
+  .sk-article-img { height: 220px; }
+  .sk-card-body { padding: 18px; }
 }
 </style>

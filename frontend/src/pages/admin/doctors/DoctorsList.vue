@@ -401,8 +401,8 @@ const handleDelete = async (id) => {
   color: #0284c7;
 }
 .action-btn.delete {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.15);
+  color: #e31e24;
 }
 .action-btn.treatment {
   background: rgba(168, 85, 247, 0.15);

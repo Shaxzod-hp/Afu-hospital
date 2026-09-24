@@ -271,7 +271,7 @@ onMounted(async () => {
 
 <style scoped>
 .footer-luxe {
-  background: rgb(45, 46, 123) !important;
+  background: rgb(50, 45, 119) !important;
   color: #f8fafc;
   position: relative;
   z-index: 2;
@@ -435,9 +435,9 @@ onMounted(async () => {
 }
 
 .social-btn-luxe.youtube:hover {
-  background-color: #ff0000;
-  border-color: #ff0000;
-  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.35);
+  background-color: #e31e24;
+  border-color: #e31e24;
+  box-shadow: 0 8px 20px rgba(227, 30, 36, 0.35);
 }
 
 .footer-bottom {

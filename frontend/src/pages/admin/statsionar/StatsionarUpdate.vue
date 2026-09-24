@@ -476,15 +476,15 @@ const savePackage = async () => {
   min-width: 40px;
   border-radius: 10px;
   border: none;
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.12);
+  color: #e31e24;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
 }
 .btn-remove-item:hover {
-  background: #ef4444;
+  background: #e31e24;
   color: white;
 }
 
@@ -525,7 +525,7 @@ const savePackage = async () => {
   font-size: 0.75rem;
 }
 .remove-photo-btn:hover {
-  background: #ef4444;
+  background: #e31e24;
 }
 
 .add-thumb {
@@ -556,8 +556,8 @@ const savePackage = async () => {
   font-size: 0.9rem;
 }
 .alert-danger-glass {
-  background: rgba(239, 68, 68, 0.15);
-  color: #b91c1c;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(227, 30, 36, 0.15);
+  color: #c1191e;
+  border: 1px solid rgba(227, 30, 36, 0.3);
 }
 </style>

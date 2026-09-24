@@ -546,7 +546,7 @@ const closeSidebar = () => {
   right: 0;
   height: 2px;
   border-radius: 2px;
-  background-color: #ef4444;
+  background-color: #e31e24;
   transform: scaleX(0);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -759,7 +759,7 @@ const closeSidebar = () => {
 
 .call-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3) !important;
+  box-shadow: 0 6px 16px rgba(227, 30, 36, 0.3) !important;
 }
 
 .mobile-navbar-luxe {

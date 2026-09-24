@@ -250,7 +250,7 @@ onMounted(async () => {
 }
 
 .swiper-slide-active .doc-card {
-  box-shadow: 0 24px 48px rgba(220, 53, 69, 0.25) !important;
+  box-shadow: 0 24px 48px rgba(227, 30, 36, 0.25) !important;
 }
 
 .doc-overlay {
@@ -287,7 +287,7 @@ onMounted(async () => {
 }
 
 .doc-nav-btn:hover {
-  background: #dc3545;
+  background: #e31e24;
 }
 
 :deep(.doc-pagination .swiper-pagination-bullet) {
@@ -300,7 +300,7 @@ onMounted(async () => {
 :deep(.doc-pagination .swiper-pagination-bullet-active) {
   width: 28px;
   border-radius: 4px;
-  background: #dc3545 !important;
+  background: #e31e24 !important;
 }
 
 @media (max-width: 768px) {

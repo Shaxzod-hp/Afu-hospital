@@ -23,7 +23,7 @@ class TelegramTest extends Command
         $this->info('Sozlamalar topildi.');
 
         try {
-            $me = Http::timeout(10)->get("https://api.telegram.org/bot{$token}/getMe")->json();
+            $me = Http::timeout(10)->withOptions(['force_ip_resolve' => 'v4'])->get("https://api.telegram.org/bot{$token}/getMe")->json();
         } catch (\Throwable $e) {
             $this->error('api.telegram.org ga ulanib bo\'lmadi: ' . $e->getMessage());
             $this->line('Hosting chiquvchi HTTPS so\'rovlarni bloklayotgan bo\'lishi mumkin — provayderga murojaat qiling.');
@@ -36,7 +36,7 @@ class TelegramTest extends Command
         }
         $this->info('Bot: @' . $me['result']['username']);
 
-        $member = Http::timeout(10)->get("https://api.telegram.org/bot{$token}/getChatMember", [
+        $member = Http::timeout(10)->withOptions(['force_ip_resolve' => 'v4'])->get("https://api.telegram.org/bot{$token}/getChatMember", [
             'chat_id' => $chatId,
             'user_id' => $me['result']['id'],
         ])->json();
@@ -48,7 +48,7 @@ class TelegramTest extends Command
         $this->info('Botning guruhdagi holati: ' . $member['result']['status']);
 
         if ($this->option('send')) {
-            $res = Http::timeout(10)->post("https://api.telegram.org/bot{$token}/sendMessage", [
+            $res = Http::timeout(10)->withOptions(['force_ip_resolve' => 'v4'])->post("https://api.telegram.org/bot{$token}/sendMessage", [
                 'chat_id' => $chatId,
                 'text' => '✅ Test xabar: sayt serveridan Telegram bildirishnomalari ishlayapti.',
             ])->json();

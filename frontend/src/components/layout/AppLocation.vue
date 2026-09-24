@@ -102,7 +102,7 @@
 
 .main-title {
   font-family: 'Outfit', sans-serif;
-  color: var(--primary-dark);
+  color: var(--clr-text);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -111,24 +111,24 @@
 .icon-box {
   width: 44px;
   height: 44px;
-  background-color: rgba(220, 53, 69, 0.06);
+  background-color: rgba(227, 30, 36, 0.06);
   font-size: 1.1rem;
 }
 
 .text-dark-premium {
-  color: var(--primary-dark);
+  color: var(--clr-text);
 }
 
 .text-muted-premium {
-  color: var(--text-muted);
+  color: var(--clr-muted);
 }
 
 /* Navigator Tugmalari */
 .btn-nav {
   font-size: 0.85rem;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  background-color: #f1f5f9;
-  color: var(--primary-dark);
+  background-color: var(--clr-faint);
+  color: var(--clr-text);
 }
 
 .btn-nav i {
@@ -168,7 +168,7 @@
 /* Hover interaksiyalari */
 .info-premium-card:hover,
 .map-wrapper:hover {
-  border-color: rgba(220, 53, 69, 0.2) !important;
+  border-color: rgba(227, 30, 36, 0.2) !important;
 }
 
 /* Mobil qurilmalar uchun moslashuv */

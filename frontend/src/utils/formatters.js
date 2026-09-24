@@ -1,3 +1,9 @@
+// Brauzerlarda "uz-Latn" lokali to'liq emas ("2026 M09 22" chiqadi) — oy nomlari qo'lda
+const UZ_MONTHS = [
+  "yanvar", "fevral", "mart", "aprel", "may", "iyun",
+  "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
+]
+
 /**
  * Format a date string or Date object to Uzbek locale
  * @param {string|Date} d
@@ -7,12 +13,13 @@ export const formatDate = (d, mode = 'date') => {
   if (!d) return ''
   const date = new Date(d)
   if (isNaN(date)) return ''
-  const opts = { day: '2-digit', month: 'long', year: 'numeric' }
+  let out = `${date.getDate()}-${UZ_MONTHS[date.getMonth()]}, ${date.getFullYear()}`
   if (mode === 'datetime') {
-    opts.hour   = '2-digit'
-    opts.minute = '2-digit'
+    const hh = String(date.getHours()).padStart(2, '0')
+    const mm = String(date.getMinutes()).padStart(2, '0')
+    out += ` ${hh}:${mm}`
   }
-  return date.toLocaleDateString('uz-Latn-UZ', opts)
+  return out
 }
 
 /**

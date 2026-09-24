@@ -350,9 +350,9 @@ onUnmounted(() => {
 .logout-btn-glass {
   width: 100%;
   padding: 11px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  background: rgba(239, 68, 68, 0.08);
-  color: #ef4444;
+  border: 1px solid rgba(227, 30, 36, 0.2);
+  background: rgba(227, 30, 36, 0.08);
+  color: #e31e24;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -375,9 +375,9 @@ onUnmounted(() => {
 }
 
 .logout-btn-glass:hover {
-  background: #ef4444;
+  background: #e31e24;
   color: #ffffff;
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+  box-shadow: 0 6px 16px rgba(227, 30, 36, 0.25);
 }
 
 /* =========================

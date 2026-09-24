@@ -400,8 +400,8 @@ onMounted(fetchProfile);
 }
 
 .glass-alert-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
+  background: rgba(227, 30, 36, 0.12);
+  color: #c1191e;
   border-radius: 12px;
 }
 </style>

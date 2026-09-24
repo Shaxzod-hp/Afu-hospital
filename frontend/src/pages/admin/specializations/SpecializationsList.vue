@@ -508,7 +508,7 @@ const showAlert = (msg, type = "success") => {
 }
 
 .btn-danger-glass {
-  background: #ef4444;
+  background: #e31e24;
   color: white;
   padding: 10px 20px;
   border-radius: 12px;
@@ -519,7 +519,7 @@ const showAlert = (msg, type = "success") => {
 }
 
 .btn-danger-glass:hover:not(:disabled) {
-  background: #dc2626;
+  background: #c1191e;
   transform: translateY(-1px);
 }
 
@@ -574,12 +574,12 @@ const showAlert = (msg, type = "success") => {
 }
 
 .action-btn.delete {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.15);
+  color: #e31e24;
 }
 
 .action-btn.delete:hover {
-  background: #ef4444;
+  background: #e31e24;
   color: white;
 }
 
@@ -691,8 +691,8 @@ const showAlert = (msg, type = "success") => {
 }
 
 .alert-danger-glass {
-  background: rgba(239, 68, 68, 0.15);
-  color: #b91c1c;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(227, 30, 36, 0.15);
+  color: #c1191e;
+  border: 1px solid rgba(227, 30, 36, 0.3);
 }
 </style>

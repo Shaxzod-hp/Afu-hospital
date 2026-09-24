@@ -1,158 +1,178 @@
 <template>
-  <section class="design-three min-vh-100 pb-5">
-    <!-- HERO VIDEO BANNER -->
-    <div class="news-hero-container position-relative overflow-hidden">
-      <video class="news-hero-video" autoplay muted loop playsinline>
-        <source src="/bg-videoo.mp4" type="video/mp4" />
-      </video>
-      <div class="news-hero-overlay"></div>
-      <div class="news-hero-content container text-center">
-        <div class="max-w-xl mx-auto text-white animate-fadeUp">
-          <h1 class="hero-title fw-black mb-2 mb-md-3">
-            <strong class="text-danger">ALFRAGANUS</strong> UNIVERSITY HOSPITAL
-          </h1>
-          <p class="hero-subtitle text-light opacity-85 d-none d-md-block">
-            Eng so'nggi va ishonchli tibbiy yangiliklar, tadqiqotlar hamda
-            klinika axborotlari.
-          </p>
-        </div>
-      </div>
-    </div>
+  <div class="news-page">
+    <PageHero
+      subtitle="Yangiliklar"
+      title="Klinika yangiliklari"
+      description="Eng so'nggi va ishonchli tibbiy yangiliklar, tadqiqotlar hamda klinika axborotlari."
+    />
 
-    <!-- MAIN CONTENT AREA -->
-    <div
-      class="container-fluid px-3 px-md-4 px-lg-5 py-4 py-lg-5 news-main-wrap"
-    >
-      <!-- HEADER & SEARCH -->
-      <div class="row align-items-center g-3 g-lg-4 mb-3 mb-lg-5">
-        <div class="col-12 col-lg-8">
-          <h1 class="news-title fw-bold lh-1 mb-0">
-            Klinikamizdagi <span>so'nggi</span> yangiliklar.
-          </h1>
-        </div>
-      </div>
-
-      <div class="border-top border-secondary opacity-25 mb-4 mb-lg-5"></div>
-
-      <!-- LOADING -->
-      <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-      </div>
-
-      <!-- CARD GRID -->
-      <div v-else class="row g-3 g-md-4">
-        <div
-          v-for="item in news"
-          :key="item.id"
-          class="col-12 col-md-6 col-lg-4"
-        >
-          <div class="news-card shadow-sm rounded-4 h-100 bg-white">
-            <router-link
-              :to="{
-                name: 'news-detail',
-                params: { slug: item.slug || item.id },
-              }"
-              class="d-block text-decoration-none"
-            >
-              <div class="news-card-img rounded-top-4 overflow-hidden">
-                <img
-                  :src="getPhotoUrl(item.image)"
-                  :alt="item.title"
-                  class="w-100 h-100 object-fit-cover"
-                />
-              </div>
-            </router-link>
-            <div
-              class="p-3 p-md-4 d-flex flex-column justify-content-between h-auto"
-            >
-              <div>
-                <div class="news-card-date mb-2">
-                  {{ formatDate(item.published_at || item.created_at) }}
-                </div>
-                <h3 class="news-card-title mb-2">{{ item.title }}</h3>
-                <p class="news-card-excerpt mb-3">
-                  {{ item.summary || truncate(item.content) }}
-                </p>
-              </div>
-              <div>
-                <router-link
-                  :to="{
-                    name: 'news-detail',
-                    params: { slug: item.slug || item.id },
-                  }"
-                  class="news-card-read"
-                >
-                  O'qish
-                </router-link>
-              </div>
+    <section class="news-body">
+      <div class="container">
+        <!-- SKELETON -->
+        <template v-if="loading">
+          <div class="sk-surface featured-skeleton mb-4 mb-lg-5 d-none d-md-flex">
+            <div class="sk featured-skeleton-img"></div>
+            <div class="flex-grow-1 p-4 p-lg-5">
+              <span class="sk sk-text" style="width: 30%"></span>
+              <span class="sk sk-title" style="width: 90%"></span>
+              <span class="sk sk-title mb-4" style="width: 60%"></span>
+              <span class="sk sk-text"></span>
+              <span class="sk sk-text"></span>
+              <span class="sk sk-text" style="width: 70%"></span>
             </div>
           </div>
+          <div class="row g-3 g-md-4">
+            <div v-for="n in 6" :key="n" class="col-12 col-md-6 col-lg-4">
+              <SkeletonCard variant="news" />
+            </div>
+          </div>
+        </template>
+
+        <!-- XATO -->
+        <div v-else-if="error" class="state-box">
+          <i class="bi bi-wifi-off"></i>
+          <h4>Yangiliklarni yuklab bo'lmadi</h4>
+          <p>Internet aloqasini tekshirib, qaytadan urinib ko'ring.</p>
+          <button class="btn btn-clinic-primary" @click="fetchNews">
+            <i class="bi bi-arrow-clockwise me-1"></i> Qayta urinish
+          </button>
         </div>
-      </div>
 
-      <!-- LOAD MORE -->
-      <div
-        v-if="!loading && news.length && currentPage < lastPage"
-        class="text-center mt-4 mt-lg-5"
-      >
-        <button
-          class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold"
-          :disabled="loadingMore"
-          @click="loadMore"
-        >
-          <span
-            v-if="loadingMore"
-            class="spinner-border spinner-border-sm me-2"
-          ></span>
-          Ko'proq yangiliklar
-        </button>
-      </div>
+        <!-- BO'SH -->
+        <div v-else-if="!news.length" class="state-box">
+          <i class="bi bi-newspaper"></i>
+          <h4>Hozircha yangiliklar yo'q</h4>
+          <p>Tez orada bu yerda klinikamiz yangiliklari paydo bo'ladi.</p>
+        </div>
 
-      <!-- EMPTY STATE -->
-      <div v-if="!loading && news.length === 0" class="text-center py-5">
-        <i class="bi bi-newspaper display-4 text-muted opacity-50"></i>
-        <h4 class="fw-bold mt-3 text-secondary">Yangilik topilmadi</h4>
-        <p class="text-muted mb-0">
-          Hozircha hech qanday yangilik joylanmagan.
-        </p>
+        <template v-else>
+          <!-- ASOSIY (eng so'nggi) YANGILIK -->
+          <router-link
+            v-if="featured"
+            :to="detailLink(featured)"
+            class="featured-card mb-4 mb-lg-5"
+          >
+            <div class="featured-img">
+              <img
+                v-if="mediaUrl(featured.image)"
+                :src="mediaUrl(featured.image)"
+                :alt="featured.title"
+                loading="eager"
+              />
+              <div v-else class="img-placeholder"><i class="bi bi-newspaper"></i></div>
+              <span class="featured-badge">
+                <i class="bi bi-lightning-charge-fill"></i> So'nggi yangilik
+              </span>
+            </div>
+            <div class="featured-body">
+              <div class="news-meta mb-3">
+                <span v-if="featured.category?.name" class="news-cat">
+                  {{ featured.category.name }}
+                </span>
+                <span class="news-date">
+                  <i class="bi bi-calendar3"></i>
+                  {{ formatDate(featured.published_at || featured.created_at) }}
+                </span>
+              </div>
+              <h2 class="featured-title">{{ featured.title }}</h2>
+              <p class="featured-excerpt">{{ excerpt(featured, 240) }}</p>
+              <span class="read-more">
+                Batafsil o'qish <i class="bi bi-arrow-right"></i>
+              </span>
+            </div>
+          </router-link>
+
+          <!-- QOLGAN YANGILIKLAR -->
+          <div v-if="rest.length" class="row g-3 g-md-4">
+            <div
+              v-for="item in rest"
+              :key="item.id"
+              class="col-12 col-md-6 col-lg-4"
+            >
+              <router-link :to="detailLink(item)" class="news-card">
+                <div class="news-card-img">
+                  <img
+                    v-if="mediaUrl(item.image)"
+                    :src="mediaUrl(item.image)"
+                    :alt="item.title"
+                    loading="lazy"
+                  />
+                  <div v-else class="img-placeholder"><i class="bi bi-newspaper"></i></div>
+                  <span v-if="item.category?.name" class="news-cat news-cat--floating">
+                    {{ item.category.name }}
+                  </span>
+                </div>
+                <div class="news-card-body">
+                  <div class="news-meta mb-2">
+                    <span class="news-date">
+                      <i class="bi bi-calendar3"></i>
+                      {{ formatDate(item.published_at || item.created_at) }}
+                    </span>
+                    <span v-if="item.views" class="news-views">
+                      <i class="bi bi-eye"></i> {{ item.views }}
+                    </span>
+                  </div>
+                  <h3 class="news-card-title">{{ item.title }}</h3>
+                  <p class="news-card-excerpt">{{ excerpt(item) }}</p>
+                  <span class="read-more mt-auto">
+                    Batafsil <i class="bi bi-arrow-right"></i>
+                  </span>
+                </div>
+              </router-link>
+            </div>
+
+            <!-- "Ko'proq" bosilganda yuklanayotgan kartalar -->
+            <template v-if="loadingMore">
+              <div v-for="n in 3" :key="'more-' + n" class="col-12 col-md-6 col-lg-4">
+                <SkeletonCard variant="news" />
+              </div>
+            </template>
+          </div>
+
+          <!-- KO'PROQ YUKLASH -->
+          <div v-if="currentPage < lastPage" class="text-center mt-4 mt-lg-5">
+            <button
+              class="btn load-more-btn"
+              :disabled="loadingMore"
+              @click="loadMore"
+            >
+              <span v-if="loadingMore" class="spinner-border spinner-border-sm me-2"></span>
+              Ko'proq yangiliklar
+              <i v-if="!loadingMore" class="bi bi-chevron-down ms-1"></i>
+            </button>
+          </div>
+        </template>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import PageHero from "../../../components/PageHero.vue";
+import SkeletonCard from "../../../components/ui/SkeletonCard.vue";
 import newsService from "../../../services/newsService";
+import { formatDate, truncate } from "../../../utils/formatters";
+import { mediaUrl, stripHtml } from "../../../utils/media";
 
-const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 const news = ref([]);
 const loading = ref(true);
-
-const getPhotoUrl = (image) => {
-  if (!image) {
-    return "https://ui-avatars.com/api/?name=News&background=0284c7&color=fff&size=512";
-  }
-  return image.startsWith("http") ? image : backendUrl + image;
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("uz-Latn-UZ", {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  });
-};
-
-const truncate = (html) => {
-  if (!html) return "";
-  const text = html.replace(/<[^>]*>/g, "");
-  return text.length > 120 ? text.slice(0, 120) + "..." : text;
-};
-
+const error = ref(false);
 const currentPage = ref(1);
 const lastPage = ref(1);
 const loadingMore = ref(false);
+
+const featured = computed(() => news.value[0] || null);
+const rest = computed(() => news.value.slice(1));
+
+const detailLink = (item) => ({
+  name: "news-detail",
+  params: { slug: item.slug || item.id },
+});
+
+// Kartada HTML teglar ko'rinib qolmasligi uchun faqat toza matn
+const excerpt = (item, n = 130) =>
+  truncate(item.summary || stripHtml(item.content), n);
 
 const loadPage = async (page) => {
   const res = await newsService.fetchPage(page, 12);
@@ -164,10 +184,11 @@ const loadPage = async (page) => {
 
 const fetchNews = async () => {
   loading.value = true;
+  error.value = false;
   try {
     news.value = await loadPage(1);
-  } catch (err) {
-    news.value = [];
+  } catch {
+    error.value = true;
   } finally {
     loading.value = false;
   }
@@ -179,7 +200,7 @@ const loadMore = async () => {
     const more = await loadPage(currentPage.value + 1);
     const ids = new Set(news.value.map((n) => n.id));
     news.value.push(...more.filter((n) => !ids.has(n.id)));
-  } catch (err) {
+  } catch {
     // tugma qayta bosilishi mumkin
   } finally {
     loadingMore.value = false;
@@ -190,182 +211,368 @@ onMounted(fetchNews);
 </script>
 
 <style scoped>
-.design-three {
-  color: #0f172a;
+.news-page {
+  background: var(--clr-bg);
 }
 
-/* HERO VIDEO */
-.news-hero-container {
+.news-body {
+  padding: 56px 0 80px;
+}
+
+/* ── ASOSIY YANGILIK ── */
+.featured-card {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 24px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.featured-img {
   position: relative;
-  width: 100%;
-  height: 450px;
   min-height: 380px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #002b87;
+  overflow: hidden;
+  background: var(--clr-faint);
 }
 
-.news-hero-video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  object-fit: cover;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.news-hero-overlay {
+.featured-img img {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 43, 135, 0.75) 0%,
-    rgba(0, 20, 70, 0.8) 100%
-  );
-  z-index: 1;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease-out);
 }
 
-.news-hero-content {
-  position: relative;
-  z-index: 2;
-  padding: 0 15px;
+.featured-card:hover .featured-img img {
+  transform: scale(1.04);
 }
 
-.max-w-xl {
-  max-width: 720px;
+.featured-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--clr-secondary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  box-shadow: 0 6px 18px rgba(227, 30, 36, 0.35);
 }
 
-.hero-title {
-  font-size: clamp(1.5rem, 4vw, 3rem);
+.featured-body {
+  padding: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.featured-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
   font-weight: 800;
-  font-family: "Outfit", sans-serif;
-  line-height: 1.2;
-}
-
-/* MAIN CONTENT */
-.news-main-wrap {
-  position: relative;
-  z-index: 3;
-}
-
-.news-title {
-  font-size: clamp(1.75rem, 4vw, 3.5rem);
-  letter-spacing: -1px;
-  color: #0f172a;
-}
-
-.news-title span {
-  color: #0284c7;
-  font-family: Georgia, serif;
-  font-style: italic;
-  font-weight: 400;
-}
-
-/* CARDS */
-.news-card {
-  color: inherit;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  line-height: 1.25;
+  color: var(--clr-text);
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.featured-excerpt {
+  color: var(--clr-muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  margin-bottom: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── META ── */
+.news-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 0.8rem;
+}
+
+.news-date,
+.news-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--clr-muted);
+  font-weight: 600;
+}
+
+.news-date i {
+  color: var(--clr-secondary);
+}
+
+.news-cat {
+  display: inline-block;
+  background: rgba(0, 43, 135, 0.08);
+  color: var(--clr-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 5px 12px;
+  border-radius: 50px;
+}
+
+.news-cat--floating {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--clr-primary);
+  backdrop-filter: blur(6px);
+}
+
+/* ── KARTALAR ── */
+.news-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 20px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out),
+    border-color 0.3s ease;
 }
 
 .news-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: transparent;
 }
 
 .news-card-img {
-  height: 200px;
-  background: #f1f5f9;
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: var(--clr-faint);
 }
 
 .news-card-img img {
-  transition: transform 0.5s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-out);
 }
 
 .news-card:hover .news-card-img img {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
-.news-card-date {
-  color: #dc2626;
-  font-size: 0.8rem;
-  font-weight: 700;
+.img-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--clr-primary);
+  opacity: 0.35;
+}
+
+.news-card-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 22px;
 }
 
 .news-card-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
   line-height: 1.4;
+  color: var(--clr-text);
+  margin-bottom: 10px;
   transition: color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .news-card:hover .news-card-title {
-  color: #0284c7;
+  color: var(--clr-primary);
 }
 
 .news-card-excerpt {
-  color: #64748b;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  color: var(--clr-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.news-card-read {
-  display: inline-block;
-  color: #0284c7;
+.read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--clr-secondary);
   font-weight: 700;
-  font-size: 0.85rem;
-  padding: 6px 16px;
-  border: 1.5px solid #0284c7;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
-.news-card-read:hover {
-  background: #0284c7;
-  color: white;
+.read-more i {
+  transition: transform 0.25s ease;
 }
 
-/* DARK MODE */
-[data-theme="dark"] .design-three {
-  background: #0f172a !important;
-  color: #f1f5f9;
+.news-card:hover .read-more i,
+.featured-card:hover .read-more i {
+  transform: translateX(5px);
 }
 
-[data-theme="dark"] .news-card {
-  background: #1e293b !important;
-  border-color: rgba(255, 255, 255, 0.08);
+/* ── KO'PROQ TUGMASI ── */
+.load-more-btn {
+  border: 2px solid var(--clr-primary);
+  color: var(--clr-primary);
+  background: transparent;
+  border-radius: 50px;
+  font-weight: 700;
+  padding: 0.7rem 2rem;
+  transition: var(--transition);
 }
 
-[data-theme="dark"] .news-title,
+.load-more-btn:hover:not(:disabled) {
+  background: var(--clr-primary);
+  color: #fff;
+}
+
+/* ── BO'SH / XATO HOLATI ── */
+.state-box {
+  text-align: center;
+  padding: 64px 16px;
+  color: var(--clr-muted);
+}
+
+.state-box i {
+  font-size: 3rem;
+  color: var(--clr-primary);
+  opacity: 0.5;
+}
+
+.state-box h4 {
+  color: var(--clr-text);
+  font-weight: 700;
+  margin: 16px 0 8px;
+}
+
+.state-box p {
+  margin-bottom: 20px;
+}
+
+/* ── SKELETON (asosiy karta) ── */
+.featured-skeleton {
+  min-height: 380px;
+}
+
+.featured-skeleton-img {
+  width: 53%;
+  border-radius: 0;
+}
+
+/* ── DARK MODE ── */
+[data-theme="dark"] .news-cat {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .news-cat--floating {
+  background: rgba(15, 23, 42, 0.85);
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .featured-title,
 [data-theme="dark"] .news-card-title {
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .news-card-excerpt {
-  color: #94a3b8;
+  color: #f1f5f9 !important;
 }
 
 [data-theme="dark"] .news-card:hover .news-card-title {
-  color: #38bdf8;
+  color: #93c5fd !important;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .news-hero-container {
-    height: 320px;
-    min-height: 260px;
+[data-theme="dark"] .news-card:hover,
+[data-theme="dark"] .featured-card:hover {
+  border-color: var(--clr-primary);
+}
+
+[data-theme="dark"] .load-more-btn {
+  border-color: #60a5fa;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .load-more-btn:hover:not(:disabled) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 991px) {
+  .featured-body {
+    padding: 32px;
+  }
+  .featured-img {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 767px) {
+  .news-body {
+    padding: 32px 0 56px;
+  }
+  .featured-card {
+    grid-template-columns: 1fr;
+    border-radius: 20px;
+  }
+  .featured-img {
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+  .featured-body {
+    padding: 22px;
+  }
+  .featured-excerpt {
+    -webkit-line-clamp: 3;
+    margin-bottom: 16px;
   }
   .news-card-img {
-    height: 180px;
+    height: 200px;
+  }
+  .news-card-body {
+    padding: 18px;
   }
 }
 </style>

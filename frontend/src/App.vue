@@ -13,7 +13,7 @@
   </template>
 
   <script setup>
-  import { computed, ref, onMounted, watch } from "vue";
+  import { computed, ref, watch } from "vue";
   import { useRoute } from "vue-router";
 
   import AppHeader from "./components/layout/AppHeader.vue";
@@ -25,14 +25,19 @@
 
   const theme = ref(localStorage.getItem("theme") || "light");
 
-  const applyTheme = (value) => {
+  const applyTheme = () => {
+    // Admin panel dark rejimga moslanmagan — u yerda doim light
+    const value = isAdminPage.value ? "light" : theme.value;
+    // Bootstrap 5.3 ning o'z dark rejimi ham yoqilsin (forma, jadval, dropdown ranglari)
+    document.documentElement.setAttribute("data-bs-theme", value);
     document.documentElement.setAttribute("data-theme", value);
-    localStorage.setItem("theme", value);
   };
 
-  onMounted(() => applyTheme(theme.value));
+  // onMounted emas — birinchi chizishdan oldin qo'llanadi, oq "miltillash" bo'lmaydi
+  applyTheme();
 
-  watch(theme, (val) => applyTheme(val));
+  watch([theme, isAdminPage], applyTheme);
+  watch(theme, (val) => localStorage.setItem("theme", val));
 
   // toggle function
   const toggleTheme = () => {
@@ -43,7 +48,7 @@
   <style scoped>
   .app-wrapper {
     min-height: 100vh;
-    background: var(--off-white);
+    background: var(--clr-bg);
     display: flex;
     flex-direction: column;
     transition: background-color 0.5s ease, color 0.5s ease;
@@ -85,19 +90,19 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--gray-100);
+    background: var(--clr-faint);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--gray-300);
+    background: var(--clr-border);
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary);
+    background: var(--clr-muted);
   }
 
   [data-theme="dark"] .app-wrapper {
-    background: var(--primary-dark);
+    background: var(--clr-bg);
   }
   </style>

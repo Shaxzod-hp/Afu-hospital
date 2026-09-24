@@ -159,9 +159,9 @@ const handleLogin = async () => {
 }
 
 .error-msg-glass {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.1);
+  border: 1px solid rgba(227, 30, 36, 0.2);
+  color: #e31e24;
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 0.85rem;

@@ -151,7 +151,7 @@ const slides = [
 }
 
 .hero-nav-btn:hover {
-  color: #d32f2f;
+  color: #e31e24;
 }
 
 .hero-prev {
@@ -174,7 +174,7 @@ const slides = [
 :deep(.swiper-pagination-bullet-active) {
   width: 24px;
   border-radius: 4px;
-  background: #d32f2f !important;
+  background: #e31e24 !important;
 }
 
 @media (max-width: 768px) {

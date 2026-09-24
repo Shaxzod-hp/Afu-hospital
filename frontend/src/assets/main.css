@@ -10,9 +10,17 @@
   /* Brand Colors */
   --clr-primary:      #002b87;
   --clr-primary-mid:  #1a44b0;
-  --clr-secondary:    #d32f2f;
+  --clr-secondary:    #e31e24;   /* brend qizil — rgb(227, 30, 36) */
+  --clr-secondary-dark: #c1191e;
   --clr-accent:       #4088c4;
-  --clr-footer:       #2d2e7b;
+  --clr-footer:       #322d77;   /* rgb(50, 45, 119) */
+
+  /* Bootstrap "danger" ham brend qizilga teng (text-danger, bg-danger, ...) */
+  --bs-danger:        #e31e24;
+  --bs-danger-rgb:    227, 30, 36;
+  --bs-danger-text-emphasis: #8a1216;
+  --bs-danger-bg-subtle:     #fcdcdd;
+  --bs-danger-border-subtle: #f5a5a7;
 
   /* Grays */
   --clr-bg:       #f8fafc;
@@ -48,9 +56,13 @@
   /* Brand Colors adjustment for dark mode readability */
   --clr-primary:        #3b82f6;
   --clr-primary-mid:    #60a5fa;
-  --clr-secondary:      #ef4444;
+  --clr-secondary:      #e31e24;
+  --clr-secondary-dark: #c1191e;
   --clr-accent:         #38bdf8;
-  --clr-footer:         #0f172a;
+  --clr-footer:         #322d77;
+  --bs-danger-text-emphasis: #f28b8e;
+  --bs-danger-bg-subtle:     rgba(227, 30, 36, .15);
+  --bs-danger-border-subtle: rgba(227, 30, 36, .4);
 
   /* Grays — chuqur va yumshoqroq qora tuslar */
   --clr-bg:             #0b0f19;
@@ -276,7 +288,7 @@ h1, h2, h3, .heading { font-family: var(--font-display); }
 }
 
 .btn-clinic-danger:hover {
-  background: #b71c1c;
+  background: var(--clr-secondary-dark);
   transform: translateY(-2px);
   color: #fff;
 }
@@ -534,4 +546,79 @@ main { flex: 1; }
   background-color: var(--clr-bg) !important;
   background-image: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.03) 0%, transparent 40%),
                     radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.5) 0%, transparent 40%);
+}
+/* ── 27. BRAND RED — Bootstrap danger tugmalari ham brend qizil ── */
+.btn-danger {
+  --bs-btn-bg: #e31e24;
+  --bs-btn-border-color: #e31e24;
+  --bs-btn-hover-bg: #c1191e;
+  --bs-btn-hover-border-color: #c1191e;
+  --bs-btn-active-bg: #a8161a;
+  --bs-btn-active-border-color: #a8161a;
+  --bs-btn-disabled-bg: #e31e24;
+  --bs-btn-disabled-border-color: #e31e24;
+  --bs-btn-focus-shadow-rgb: 227, 30, 36;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #e31e24;
+  --bs-btn-border-color: #e31e24;
+  --bs-btn-hover-bg: #e31e24;
+  --bs-btn-hover-border-color: #e31e24;
+  --bs-btn-active-bg: #c1191e;
+  --bs-btn-active-border-color: #c1191e;
+  --bs-btn-disabled-color: #e31e24;
+  --bs-btn-disabled-border-color: #e31e24;
+  --bs-btn-focus-shadow-rgb: 227, 30, 36;
+}
+
+.text-danger { color: #e31e24 !important; }
+.bg-danger   { background-color: #e31e24 !important; }
+.border-danger { border-color: #e31e24 !important; }
+
+/* ── 28. SKELETON (barcha sahifalar uchun umumiy, light/dark) ── */
+:root {
+  --sk-base:  #e6ebf2;
+  --sk-shine: #f4f6fa;
+}
+
+[data-theme="dark"] {
+  --sk-base:  #1b2438;
+  --sk-shine: #26324b;
+}
+
+@keyframes sk-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.sk {
+  display: block;
+  background: linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.sk-text   { height: 12px; margin-bottom: 10px; }
+.sk-title  { height: 20px; margin-bottom: 14px; }
+.sk-circle { border-radius: 50%; }
+.sk-pill   { border-radius: 50px; }
+
+.sk-surface {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none; }
+}
+
+/* ── 29. YUKLANMAGAN RASM (main.js dagi fallback) ── */
+img.img-broken {
+  object-fit: contain !important;
+  background: var(--clr-faint);
+  padding: 12%;
 }

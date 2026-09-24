@@ -516,8 +516,8 @@ onBeforeUnmount(() => {
   font-size: 0.88rem;
 }
 .alert-danger-glass {
-  background: rgba(239, 68, 68, 0.15);
-  color: #b91c1c;
+  background: rgba(227, 30, 36, 0.15);
+  color: #c1191e;
 }
 .alert-success-glass {
   background: rgba(16, 185, 129, 0.15);
@@ -645,7 +645,7 @@ onBeforeUnmount(() => {
   transition: background 0.15s ease;
 }
 .preview-remove-btn:hover {
-  background: #ef4444;
+  background: #e31e24;
 }
 
 .upload-counter {
@@ -732,8 +732,8 @@ onBeforeUnmount(() => {
   height: 28px;
   border-radius: 50%;
   border: none;
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(227, 30, 36, 0.15);
+  color: #e31e24;
   font-size: 0.75rem;
   display: flex;
   align-items: center;
@@ -770,7 +770,7 @@ onBeforeUnmount(() => {
 }
 
 .log-delete-btn:hover:not(:disabled) {
-  background: #ef4444;
+  background: #e31e24;
   color: #fff;
   transform: scale(1.05);
 }

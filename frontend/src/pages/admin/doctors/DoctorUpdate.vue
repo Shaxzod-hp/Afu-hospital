@@ -662,8 +662,8 @@ const saveDoctor = async () => {
   font-size: 0.9rem;
 }
 .alert-danger-glass {
-  background: rgba(239, 68, 68, 0.15);
-  color: #b91c1c;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(227, 30, 36, 0.15);
+  color: #c1191e;
+  border: 1px solid rgba(227, 30, 36, 0.3);
 }
 </style>
