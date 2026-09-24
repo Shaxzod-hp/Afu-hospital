@@ -14,6 +14,12 @@ export default {
 
   fetchLogs: (slugOrId) => api.get(`/doctors/${slugOrId}/treatment-logs`).then(unwrap),
 
+  // Admin: shifokorning barcha lavhalari (24 soatdan o'tib, hali tozalanmaganlari ham)
+  adminFetchLogs: (doctorId) =>
+    api.get('/admin/treatment-logs', { params: { doctor_id: doctorId } }).then(unwrap),
+  createLog: (formData) => api.post('/admin/treatment-logs', formData).then(unwrap),
+  removeLog: (id) => api.delete(`/admin/treatment-logs/${id}`),
+
   adminFetchAll: (specializationId = null) => {
     const params = specializationId ? { specialization_id: specializationId } : {}
     return api.get('/admin/doctors', { params }).then(unwrap)

@@ -289,26 +289,30 @@
                   <div class="treatment-log-card h-100">
                     <div
                       class="log-slideshow"
-                      @mouseenter="pauseLogSlide(log.id)"
-                      @mouseleave="resumeLogSlide(log.id)"
+                      @pointerenter="onSlidePointer($event, log.id, true)"
+                      @pointerleave="onSlidePointer($event, log.id, false)"
                     >
                       <img
                         v-for="(photo, i) in log.photos"
                         :key="i"
                         :src="resolveImage(photo)"
                         :alt="log.description"
+                        :loading="i === 0 ? 'eager' : 'lazy'"
                         class="log-slide-img"
                         :class="{ active: (logSlideIndex[log.id] || 0) === i }"
                       />
                       <div v-if="log.photos.length > 1" class="log-slide-dots">
-                        <span
+                        <button
                           v-for="(photo, i) in log.photos"
                           :key="i"
+                          type="button"
                           class="log-dot"
                           :class="{
                             active: (logSlideIndex[log.id] || 0) === i,
                           }"
-                        ></span>
+                          :aria-label="`${i + 1}-rasm`"
+                          @click="goToLogSlide(log, i)"
+                        ></button>
                       </div>
                     </div>
 
@@ -578,17 +582,23 @@ const startLogSlideTimer = (log) => {
   const photos = Array.isArray(log.photos) ? log.photos : [];
   if (photos.length <= 1) return;
   logSlideIndex[log.id] = logSlideIndex[log.id] || 0;
+  clearInterval(logSlideTimers[log.id]);
   logSlideTimers[log.id] = setInterval(() => {
     if (logPausedIds[log.id]) return;
     logSlideIndex[log.id] = ((logSlideIndex[log.id] || 0) + 1) % photos.length;
   }, 2500);
 };
 
-const pauseLogSlide = (id) => {
-  logPausedIds[id] = true;
+// Faqat sichqoncha bilan pauza qilamiz: telefonda tegilganda "leave" hodisasi
+// kelmaydi va slayd-shou abadiy to'xtab qolardi
+const onSlidePointer = (e, id, paused) => {
+  if (e.pointerType === "mouse") logPausedIds[id] = paused;
 };
-const resumeLogSlide = (id) => {
-  logPausedIds[id] = false;
+
+// Nuqta bosilganda o'sha rasmga o'tamiz va taymerni qaytadan boshlaymiz
+const goToLogSlide = (log, index) => {
+  logSlideIndex[log.id] = index;
+  startLogSlideTimer(log);
 };
 
 const clearAllLogTimers = () => {
@@ -596,7 +606,12 @@ const clearAllLogTimers = () => {
   Object.keys(logSlideTimers).forEach((k) => delete logSlideTimers[k]);
 };
 
+// Shifokorlar orasida tez o'tilganda eski so'rov javobi yangi sahifani buzmasligi uchun
+let loadSeq = 0;
+
 const loadDoctor = async () => {
+  const seq = ++loadSeq;
+  const isStale = () => seq !== loadSeq;
   loading.value = true;
   doctor.value = null;
   clearAllLogTimers();
@@ -617,8 +632,10 @@ const loadDoctor = async () => {
       found = res && res.data && !res.full_name ? res.data : res;
     }
 
+    if (isStale()) return;
     doctor.value = found ? { ...found } : null;
   } catch (e) {
+    if (isStale()) return;
     console.error(
       "fetchOne xatosi:",
       e?.response?.status,
@@ -631,14 +648,19 @@ const loadDoctor = async () => {
     try {
       const slugOrId = doctor.value.slug || doctor.value.id || idOrSlug;
       const logs = await doctorsService.fetchLogs(slugOrId);
-      treatmentLogs.value = Array.isArray(logs) ? logs : [];
+      if (isStale()) return;
+      treatmentLogs.value = (Array.isArray(logs) ? logs : []).map((log) => ({
+        ...log,
+        photos: Array.isArray(log.photos) ? log.photos : [],
+      }));
 
       treatmentLogs.value.forEach((log) => {
-        if (log.photos && log.photos.length > 1) {
+        if (log.photos.length > 1) {
           startLogSlideTimer(log);
         }
       });
     } catch (e) {
+      if (isStale()) return;
       console.error(
         "fetchLogs xatosi:",
         e?.response?.status,
@@ -649,6 +671,7 @@ const loadDoctor = async () => {
   }
 
   await nextTick();
+  if (isStale()) return;
   loading.value = false;
 };
 
@@ -867,8 +890,12 @@ watch(
 .log-dot {
   width: 7px;
   height: 7px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 

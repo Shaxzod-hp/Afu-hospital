@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\TreatmentLog;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class DeleteExpiredTreatmentLogs extends Command
 {
@@ -13,18 +12,14 @@ class DeleteExpiredTreatmentLogs extends Command
 
     public function handle(): int
     {
-        $expired = TreatmentLog::where('created_at', '<', now()->subHours(24))->get();
-
         $count = 0;
-        foreach ($expired as $log) {
-            foreach (($log->photos ?? []) as $photo) {
-                if (str_starts_with($photo, '/storage/')) {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $photo));
-                }
+
+        TreatmentLog::expired()->chunkById(100, function ($logs) use (&$count) {
+            foreach ($logs as $log) {
+                $log->deleteWithPhotos();
+                $count++;
             }
-            $log->delete();
-            $count++;
-        }
+        });
 
         $this->info("Deleted {$count} expired treatment log(s).");
 

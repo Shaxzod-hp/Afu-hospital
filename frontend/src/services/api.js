@@ -1,4 +1,5 @@
 import axios from 'axios'
+import compressImage from '../utils/compressImage'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -6,8 +7,23 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
+// FormData ichidagi katta rasmlarni yuborishdan oldin siqamiz —
+// barcha admin formalar (shifokor, yangilik, lavha, ...) uchun bir joyda
+const compressFormDataImages = async (formData) => {
+  const result = new FormData()
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File && value.type.startsWith('image/')) {
+      const file = await compressImage(value)
+      result.append(key, file, file.name)
+    } else {
+      result.append(key, value)
+    }
+  }
+  return result
+}
+
 // Attach auth token on every request
-api.interceptors.request.use(config => {
+api.interceptors.request.use(async config => {
   const token = localStorage.getItem('admin_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
 
@@ -18,6 +34,7 @@ api.interceptors.request.use(config => {
     delete config.headers['Content-Type']
     // Rasm yuklash sekin tarmoqda 10 soniyadan uzoq davom etishi mumkin
     config.timeout = 120000
+    config.data = await compressFormDataImages(config.data)
   }
 
   return config

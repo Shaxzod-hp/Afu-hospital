@@ -48,6 +48,10 @@ Cron (davolash lavhalarini 24 soatdan keyin o'chirish uchun):
 
 `storage/` va `bootstrap/cache/` papkalariga web-server yozish huquqi bo'lishi kerak.
 
+Rasm yuklash limitlari `backend/public/.user.ini` (PHP-FPM) va `.htaccess` (mod_php) orqali
+10 MB / 64 MB ga ko'tariladi. Agar hosting bu fayllarni e'tiborsiz qoldirsa, panelda
+`upload_max_filesize=10M`, `post_max_size=64M` ni qo'lda o'rnating.
+
 ## 2. Frontend (afu-hospital.uz)
 
 ```bash

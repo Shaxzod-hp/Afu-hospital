@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\TreatmentLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class TreatmentLogController extends Controller
 {
     // Admin: list all logs, optionally filtered by doctor
     public function index(Request $request): JsonResponse
     {
-        $query = TreatmentLog::with('doctor')->latest();
+        $request->validate(['doctor_id' => 'nullable|integer']);
+
+        $query = TreatmentLog::with('doctor:id,full_name,slug')->latest();
 
         if ($request->filled('doctor_id')) {
             $query->where('doctor_id', $request->doctor_id);
@@ -31,9 +32,9 @@ class TreatmentLogController extends Controller
         $doctor = DoctorController::findDoctor($idOrSlug);
 
         $logs = TreatmentLog::where('doctor_id', $doctor->id)
-            ->where('created_at', '>=', now()->subHours(24))
+            ->active()
             ->latest()
-            ->get();
+            ->get(['id', 'doctor_id', 'description', 'photos', 'created_at']);
 
         return response()->json([
             'success' => true,
@@ -43,43 +44,63 @@ class TreatmentLogController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $min = TreatmentLog::MIN_PHOTOS;
+        $max = TreatmentLog::MAX_PHOTOS;
+
         $validated = $request->validate([
             'doctor_id' => 'required|exists:doctors,id',
-            'description' => 'required|string|min:5',
-            'photos' => 'required|array|min:2',
-            'photos.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
+            'description' => 'required|string|min:5|max:2000',
+            'photos' => "required|array|min:{$min}|max:{$max}",
+            'photos.*' => 'required|image|mimes:jpeg,jpg,png,webp|max:5120',
+        ], [
+            'doctor_id.required' => 'Shifokor tanlanmagan.',
+            'doctor_id.exists' => 'Shifokor topilmadi.',
+            'description.required' => 'Tavsif kiritilishi shart.',
+            'description.min' => 'Tavsif kamida 5 ta belgidan iborat bo\'lishi kerak.',
+            'description.max' => 'Tavsif 2000 ta belgidan oshmasligi kerak.',
+            'photos.required' => "Kamida {$min} ta rasm yuklang.",
+            'photos.array' => "Kamida {$min} ta rasm yuklang.",
+            'photos.min' => "Kamida {$min} ta rasm yuklang.",
+            'photos.max' => "Ko'pi bilan {$max} ta rasm yuklash mumkin.",
+            'photos.*.required' => 'Rasm yuklanmadi, qaytadan urinib ko\'ring.',
+            'photos.*.image' => 'Faqat rasm fayllarini yuklash mumkin.',
+            'photos.*.mimes' => 'Rasm JPEG, PNG yoki WEBP formatida bo\'lishi kerak.',
+            'photos.*.max' => 'Har bir rasm hajmi 5 MB dan oshmasligi kerak.',
+            'photos.*.uploaded' => 'Rasm serverga yuklanmadi (hajmi juda katta bo\'lishi mumkin).',
         ]);
 
         $photoPaths = [];
-        foreach ($request->file('photos', []) as $file) {
-            $path = $file->store('uploads/treatment-logs', 'public');
-            $photoPaths[] = '/storage/' . $path;
-        }
 
-        $log = TreatmentLog::create([
-            'doctor_id' => $validated['doctor_id'],
-            'description' => $validated['description'],
-            'photos' => $photoPaths,
-        ]);
+        try {
+            foreach ($request->file('photos', []) as $file) {
+                $path = $file->store('uploads/treatment-logs', 'public');
+                if (!$path) {
+                    throw new \RuntimeException('Rasmni saqlab bo\'lmadi.');
+                }
+                $photoPaths[] = '/storage/' . $path;
+            }
+
+            $log = TreatmentLog::create([
+                'doctor_id' => $validated['doctor_id'],
+                'description' => $validated['description'],
+                'photos' => $photoPaths,
+            ]);
+        } catch (\Throwable $e) {
+            // Yarim yo'lda qolgan fayllar diskda "yetim" bo'lib qolmasin
+            TreatmentLog::deleteStoredPhotos($photoPaths);
+            throw $e;
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Treatment log created successfully.',
-            'data' => $log->load('doctor'),
+            'data' => $log->load('doctor:id,full_name,slug'),
         ], 201);
     }
 
     public function destroy($id): JsonResponse
     {
-        $log = TreatmentLog::findOrFail($id);
-
-        foreach (($log->photos ?? []) as $photo) {
-            if (str_starts_with($photo, '/storage/')) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $photo));
-            }
-        }
-
-        $log->delete();
+        TreatmentLog::findOrFail($id)->deleteWithPhotos();
 
         return response()->json([
             'success' => true,

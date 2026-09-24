@@ -66,7 +66,8 @@
                 <span class="upload-link">bosing</span>
               </p>
               <span class="upload-hint"
-                >JPEG, PNG yoki WEBP &mdash; kamida 2 ta</span
+                >JPEG, PNG yoki WEBP &mdash; kamida {{ MIN_PHOTOS }} ta, ko'pi
+                bilan {{ MAX_PHOTOS }} ta</span
               >
             </div>
 
@@ -91,19 +92,20 @@
             <div
               v-if="photoPreviews.length"
               class="upload-counter mt-2"
-              :class="photoPreviews.length >= 2 ? 'counter-ok' : 'counter-warn'"
+              :class="photoCountOk ? 'counter-ok' : 'counter-warn'"
             >
               <i
                 class="fas"
-                :class="
-                  photoPreviews.length >= 2
-                    ? 'fa-check-circle'
-                    : 'fa-exclamation-circle'
-                "
+                :class="photoCountOk ? 'fa-check-circle' : 'fa-exclamation-circle'"
               ></i>
               {{ photoPreviews.length }} ta rasm tanlandi
-              <template v-if="photoPreviews.length < 2">
-                &mdash; yana {{ 2 - photoPreviews.length }} ta kerak</template
+              <template v-if="photoPreviews.length < MIN_PHOTOS">
+                &mdash; yana {{ MIN_PHOTOS - photoPreviews.length }} ta
+                kerak</template
+              >
+              <template v-else-if="photoPreviews.length > MAX_PHOTOS">
+                &mdash; {{ photoPreviews.length - MAX_PHOTOS }} tasini
+                olib tashlang</template
               >
             </div>
           </div>
@@ -116,8 +118,12 @@
               v-model="description"
               class="form-control-glass"
               rows="4"
+              :maxlength="MAX_DESCRIPTION"
               placeholder="Bugun qanday muolaja qilingani haqida yozing..."
             ></textarea>
+            <div class="desc-counter">
+              {{ description.length }} / {{ MAX_DESCRIPTION }}
+            </div>
           </div>
 
           <div class="d-flex justify-content-end gap-2">
@@ -133,7 +139,7 @@
                 v-if="submitting"
                 class="spinner-border spinner-border-sm me-2"
               ></span>
-              Saqlash
+              {{ submitting ? submitStage : "Saqlash" }}
             </button>
           </div>
         </div>
@@ -165,33 +171,43 @@
             <div
               v-for="log in existingLogs"
               :key="log.id"
-              class="log-item position-relative"
+              class="log-item"
+              :class="{ 'is-expired': isExpired(log) }"
             >
               <!-- O'chirish tugmasi -->
               <button
                 type="button"
                 class="log-delete-btn"
+                :disabled="deletingId === log.id"
                 @click="deleteLog(log.id)"
                 title="O'chirish"
               >
-                <i class="fas fa-trash-alt"></i>
+                <span
+                  v-if="deletingId === log.id"
+                  class="spinner-border spinner-border-sm"
+                ></span>
+                <i v-else class="fas fa-trash-alt"></i>
               </button>
 
               <div class="log-item-photos">
                 <img
-                  v-for="(photo, i) in log.photos.slice(0, 3)"
+                  v-for="(photo, i) in log.photos.slice(0, log.photos.length > 3 ? 2 : 3)"
                   :key="i"
                   :src="resolveImage(photo)"
                   :alt="log.description"
+                  loading="lazy"
                 />
                 <div v-if="log.photos.length > 3" class="log-item-more">
-                  +{{ log.photos.length - 3 }}
+                  +{{ log.photos.length - 2 }}
                 </div>
               </div>
               <p class="log-item-desc">{{ log.description }}</p>
               <span class="log-item-date">{{
                 formatLogDate(log.created_at)
               }}</span>
+              <span v-if="isExpired(log)" class="log-expired-badge">
+                Saytda ko'rinmaydi (24 soat o'tgan)
+              </span>
             </div>
           </div>
         </div>
@@ -201,10 +217,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import doctorsService from "../../../services/doctorsService";
-import api from "../../../services/api";
+
+// Backend (TreatmentLog modeli) dagi chegaralar bilan bir xil
+const MIN_PHOTOS = 2;
+const MAX_PHOTOS = 10;
+const MAX_DESCRIPTION = 2000;
+const LIFETIME_MS = 24 * 60 * 60 * 1000;
 
 const route = useRoute();
 
@@ -215,6 +236,7 @@ const selectedPhotos = ref([]);
 const photoPreviews = ref([]);
 const description = ref("");
 const submitting = ref(false);
+const submitStage = ref("");
 const modalError = ref("");
 const successMsg = ref("");
 
@@ -225,6 +247,13 @@ const backendUrl = import.meta.env.VITE_STORAGE_URL || "";
 
 const existingLogs = ref([]);
 const loadingLogs = ref(true);
+const deletingId = ref(null);
+
+const photoCountOk = computed(
+  () =>
+    photoPreviews.value.length >= MIN_PHOTOS &&
+    photoPreviews.value.length <= MAX_PHOTOS
+);
 
 const resolveImage = (path) => {
   if (!path) return "";
@@ -242,14 +271,27 @@ const formatLogDate = (dateStr) => {
   });
 };
 
+const isExpired = (log) =>
+  Date.now() - new Date(log.created_at).getTime() > LIFETIME_MS;
+
+// Laravel xatosidan foydalanuvchiga tushunarli matn chiqaramiz
+const extractError = (err, fallback) => {
+  const res = err?.response;
+  if (!res) return "Server bilan aloqa yo'q. Internetni tekshirib, qayta urinib ko'ring.";
+  if (res.status === 413) return "Rasmlar hajmi juda katta. Kamroq yoki kichikroq rasm tanlang.";
+  if (res.status === 422 && res.data?.errors) {
+    const first = Object.values(res.data.errors).flat()[0];
+    if (first) return first;
+  }
+  if (res.status >= 500) return "Serverda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring.";
+  return res.data?.message || fallback;
+};
+
 const loadDoctor = async () => {
   loadingDoctor.value = true;
   doctor.value = null;
   try {
-    const id = route.params.id;
-    const res = doctorsService.adminFetchOne
-      ? await doctorsService.adminFetchOne(id)
-      : await doctorsService.fetchOne(id);
+    const res = await doctorsService.adminFetchOne(route.params.id);
     // API javobi { success, data: {...} } bo'lib kelishi mumkin
     doctor.value = res && res.data && !res.full_name ? res.data : res;
   } catch (e) {
@@ -272,12 +314,7 @@ const loadExistingLogs = async () => {
   }
   loadingLogs.value = true;
   try {
-    const slugOrId = doctor.value.slug || doctor.value.id;
-    const res = await doctorsService.fetchLogs(slugOrId);
-
-    // massiv, { data: [...] } yoki paginatsiyali { data: { data: [...] } } bo'lishi mumkin
-    const raw = Array.isArray(res) ? res : res?.data;
-    const list = Array.isArray(raw) ? raw : raw?.data;
+    const list = await doctorsService.adminFetchLogs(doctor.value.id);
 
     existingLogs.value = (Array.isArray(list) ? list : [])
       .map((log) => {
@@ -306,6 +343,9 @@ const loadExistingLogs = async () => {
 
 const appendPhotos = (files) => {
   const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+  if (imageFiles.length < files.length) {
+    modalError.value = "Faqat rasm fayllarini (JPEG, PNG, WEBP) yuklash mumkin.";
+  }
   selectedPhotos.value = [...selectedPhotos.value, ...imageFiles];
   photoPreviews.value = [
     ...photoPreviews.value,
@@ -330,17 +370,22 @@ const removePhoto = (index) => {
   selectedPhotos.value.splice(index, 1);
   photoPreviews.value.splice(index, 1);
 };
+
 // Lavhani o'chirish funksiyasi
 const deleteLog = async (id) => {
+  if (deletingId.value) return;
   if (!confirm("Haqiqatan ham ushbu lavhani o'chirmoqchimisiz?")) return;
 
+  deletingId.value = id;
   try {
-    await api.delete(`/admin/treatment-logs/${id}`);
+    await doctorsService.removeLog(id);
     // Ro'yxatdan o'chirilganini darhol yangilash
     existingLogs.value = existingLogs.value.filter((log) => log.id !== id);
   } catch (e) {
     console.error("Lavhani o'chirishda xatolik:", e?.response?.data || e);
-    alert("O'chirishda xatolik yuz berdi.");
+    alert(extractError(e, "O'chirishda xatolik yuz berdi."));
+  } finally {
+    deletingId.value = null;
   }
 };
 
@@ -355,42 +400,52 @@ const submitTreatmentLog = async () => {
   modalError.value = "";
   successMsg.value = "";
 
-  if (selectedPhotos.value.length < 2) {
-    modalError.value = "Kamida 2 ta rasm yuklash shart!";
+  const text = description.value.trim();
+
+  if (selectedPhotos.value.length < MIN_PHOTOS) {
+    modalError.value = `Kamida ${MIN_PHOTOS} ta rasm yuklash shart!`;
     return;
   }
-  if (!description.value || description.value.length < 5) {
+  if (selectedPhotos.value.length > MAX_PHOTOS) {
+    modalError.value = `Ko'pi bilan ${MAX_PHOTOS} ta rasm yuklash mumkin!`;
+    return;
+  }
+  if (text.length < 5) {
     modalError.value = "Tavsif kamida 5 ta belgidan iborat bo'lishi shart!";
     return;
   }
 
   submitting.value = true;
   try {
+    // Rasmlar api.js interceptorida avtomatik siqiladi
+    submitStage.value = "Yuklanmoqda...";
     const formData = new FormData();
     formData.append("doctor_id", doctor.value.id);
-    formData.append("description", description.value);
+    formData.append("description", text);
     selectedPhotos.value.forEach((file) => {
       formData.append("photos[]", file);
     });
 
-    await api.post("/admin/treatment-logs", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    await doctorsService.createLog(formData);
 
     successMsg.value = "Muvaffaqiyatli saqlandi.";
     resetForm();
     await loadExistingLogs(); // yangi lavha o'ng tomonda darhol chiqishi uchun
   } catch (err) {
-    modalError.value =
-      err.response?.data?.message || "Saqlashda xatolik yuz berdi.";
+    modalError.value = extractError(err, "Saqlashda xatolik yuz berdi.");
   } finally {
     submitting.value = false;
+    submitStage.value = "";
   }
 };
 
 onMounted(async () => {
   await loadDoctor();
   await loadExistingLogs();
+});
+
+onBeforeUnmount(() => {
+  photoPreviews.value.forEach((src) => URL.revokeObjectURL(src));
 });
 </script>
 
@@ -623,13 +678,6 @@ onMounted(async () => {
   padding-right: 4px;
 }
 
-.log-item {
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 14px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.5);
-}
-
 .log-item-photos {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -695,7 +743,33 @@ onMounted(async () => {
   z-index: 2;
 }
 
-.log-delete-btn:hover {
+.log-item.is-expired {
+  opacity: 0.65;
+}
+
+.log-expired-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.desc-counter {
+  text-align: right;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.log-delete-btn:disabled {
+  cursor: wait;
+}
+
+.log-delete-btn:hover:not(:disabled) {
   background: #ef4444;
   color: #fff;
   transform: scale(1.05);
